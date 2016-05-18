@@ -26,7 +26,7 @@ clear Traj_Under DensityComp_Under E
 
 [nx,ny,nt]=size(recon_Car);
 tmp=abs(recon_Car);
-maskHeart = rr_localizeHeart(tmp);
+maskHeart = localizeHeart(tmp);
 tmp = tmp.*repmat(maskHeart,[1 1 nt]);
 Signal=squeeze(sum(sum(tmp,1),2));
 temp=abs(fftshift(fft(Signal)));
