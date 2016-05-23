@@ -25,9 +25,16 @@ recon_Car=E'*double(kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
 clear Traj_Under DensityComp_Under E
 
 [nx,ny,nt]=size(recon_Car);
-tmp=abs(recon_Car);
-maskHeart = localizeHeart(tmp);
-tmp = tmp.*repmat(maskHeart,[1 1 nt]);
+
+[HF_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
+
+time_series = abs(recon_Car);
+maskHeart = tmc_localizeHeart(time_series, HF_Index);
+
+tmp = time_series.*repmat(maskHeart,[1 1 nt]);
+
+figure,imagescn(abs(tmp),[0 .001],[],[],3)
+
 Signal=squeeze(sum(sum(tmp,1),2));
 temp=abs(fftshift(fft(Signal)));
 Signal_FFT=temp/max(temp(:));clear temp tmp
@@ -42,19 +49,11 @@ Signal_FFT=temp/max(temp(:));clear temp tmp
 %     end
 % end
 
-TR=para.TR*2;
-time = TR:TR:nt*TR;
-F_S = 1/TR;F_X = 0:F_S/(nt-1):F_S;
-F_X=F_X-F_S/2;  %%% frequency after FFT of the motion signal
-if mod(nt,2)==0
-    F_X=F_X+F_X(nt/2);
-end
-% 
-FH_Index=find(F_X<para.HF_H & F_X>para.LF_H);
-Heart_Peak=squeeze(Signal_FFT(FH_Index,:));
+
+Heart_Peak=squeeze(Signal_FFT(HF_Index,:));
 
 [m,n]=find(Heart_Peak==max(Heart_Peak(:)));
-HeartFS=F_X(FH_Index);
+HeartFS=F_X(HF_Index);
 HeartFS=HeartFS(m);
 % 
 disp(sprintf('Cardiac motion frequency: %f', HeartFS));
@@ -80,4 +79,4 @@ close all
 figure
 subplot(2,1,1);plot(time,Cardiac_Signal),title('Cardiac Motion Signal')
 subplot(2,1,2);plot(F_X,Cardiac_Signal_FFT),set(gca,'XLim',[-2 2]),set(gca,'YLim',[-.02 0.08]),
-figure,imagescn(abs(recon_Car),[0 .003],[],[],3)
+figure,imagescn(abs(recon_Car),[0 .001],[],[],3)

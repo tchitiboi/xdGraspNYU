@@ -3,11 +3,13 @@ clear classes
 clc
 
 %Load the files
+cd('G:\Datasetbadresults\Very bad result\kdata,ref,traj\Pt104\')
 load kdata.mat;
 load Traj.mat;
 
 [nx,ntviews,nc]=size(kdata);
-coil=[1,2,3,4,5,6,7,8,9,10];%Coil elements used coil=[];coil=1:nc;
+%coil=[1,2,3,4,5,6,7,8,9,10];%Coil elements used coil=[];
+coil=1:nc;
 kdata=kdata(:,:,coil);
 [nx,ntviews,nc]=size(kdata);
 
@@ -110,29 +112,20 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 % code for one respirtory phase
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
-% param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
-param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+mask_recon_GRASP = createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b1);
 
+% apply mask
+b2 = b1.*mask_recon_GRASP;
+param.E=MCNUFFT(Traj_Under,DensityComp_Under,b2);
 param.y=double(squeeze(kdata_Under));
-% param.Res_Signal=Res_Signal_Under;
-recon_GRASP=param.E'*param.y;
-figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
+recon_GRASP = param.E'*param.y;
+figure,imagescn(abs(recon_GRASP),[0 .001],[],[],3)
+
 
 Weight1=0.03;
 % Weight2=0.01;
@@ -143,14 +136,15 @@ param.TV = TV_Temp;% TV along Cardiac dimension
 % param.W  = TV_Temp2D(param);% TV along Respiratory dimension
 param.nite = 6;param.display = 1;
 
-clear para Cut DensityComp DensityComp_Under
-clear Gating_Signal Gating_Signal_FFT Res_Signal_Under
-clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
-clear nline ntviews nx N ans hNewButton
+%clear para Cut DensityComp DensityComp_Under
+%clear Gating_Signal Gating_Signal_FFT Res_Signal_Under
+%clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
+%clear nline ntviews nx N ans hNewButton
 
 %%%
 clc
 tic
+
 for n=1:3
     recon_GRASP = CSL1NlCg(recon_GRASP,param);
 end
@@ -158,11 +152,7 @@ time=toc;
 time=time/60
 recon_GRASP=abs(single(recon_GRASP));
 
-% [nx,ny,nt]=size(recon_GRASP);
-% for ii=1:nx
-%     for jj=1:ny
-%         recon_GRASP_TM(ii,jj,:)=medfilt1(recon_GRASP(ii,jj,:),5);
-%     end
-% end
+%recon_GRASP=recon_GRASP(113:end-112,113:end-112,:,:);
+
 figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 

@@ -17,6 +17,7 @@ tmp = tmp./max(tmp(:));
 BW = tmp;
 BW(tmp<threshold(1))=0;
 BW(tmp>=threshold(1))=1;
+figure,imagescn(abs(BW),[0 1],[],[],3)
 CC = bwconncomp(BW);
 numPixels = cellfun(@numel,CC.PixelIdxList);
 [~,idx] = max(numPixels);
