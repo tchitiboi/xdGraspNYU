@@ -18,47 +18,56 @@ function mask_recon_GRASP = createCoilMasks(kdata_Under, Traj_Under, DensityComp
       entropies1(ch,1) = sum(sum(entropyfilt(averaged_img)));
       sum(sum(entropyfilt(averaged_img)))
 
-      if entropies(ch,1) < 5
-          averaged_img = medfilt2(averaged_img, [5 5]);
-          averaged_img = imgaussfilt(averaged_img, 4);
+      averaged_img = medfilt2(averaged_img, [5 5]);
+      averaged_img = imgaussfilt(averaged_img, 4);
 
-          border_img = averaged_img;
-          border_size = 100;
-          for x = 1:size(averaged_img,1)
-              for y = 1:size(averaged_img,2)
-                  averaged_img(x,y) = sqrt(averaged_img(x,y));
-                  if (x < border_size || x > size(averaged_img,1)-border_size) ...
-                     || (y < border_size || y > size(averaged_img,1)-border_size)
-                      border_img(x,y) = 0;
-                  else
-                      border_img(x,y) = 1;  
-                  end
+      border_img = averaged_img;
+      border_size = 100;
+      for x = 1:size(averaged_img,1)
+          for y = 1:size(averaged_img,2)
+              averaged_img(x,y) = sqrt(averaged_img(x,y));
+              if (x < border_size || x > size(averaged_img,1)-border_size) ...
+                 || (y < border_size || y > size(averaged_img,1)-border_size)
+                  border_img(x,y) = 0;
+              else
+                  border_img(x,y) = 1;  
               end
           end
-
-          % compute automatic threshold
-          [counts, x] = imhist(averaged_img,128);
-          thresh = otsuthresh(counts);
-
-          % compute connected components (cc)
-          bw = im2bw(averaged_img, thresh);
-          bw = imfill(bw, 'holes');
-          [labeledImage, numberOfBlobs] = bwlabel(bw);
-          %blobMeasurements = regionprops(labeledImage, 'area', 'Centroid');
-
-          % get largest cc
-          largestCC = extractNLargestCC(bw, 1);
-          largestCC = largestCC.*border_img; 
-          se = strel('octagon', 6);
-          D = bwdist(largestCC);       
-          cD = imcomplement(D);
-          cD = imopen(cD, se);      
-
-          mask_recon_GRASP(:,:,ch) = real(mat2gray(cD, [-300,-50]));
-
-      else
-          mask_recon_GRASP(:,:,ch) = real(zeros(size(recon_GRASP,1), size(recon_GRASP,1)));
       end
+
+      % compute automatic threshold
+      [counts, x] = imhist(averaged_img,128);
+      thresh = otsuthresh(counts);
+
+      % compute connected components (cc)
+      bw = im2bw(averaged_img, thresh);
+      bw = imfill(bw, 'holes');
+      [labeledImage, numberOfBlobs] = bwlabel(bw);
+     
+      se = strel('octagon', 6);
+      
+      % get largest cc
+      largestCC = extractNLargestCC(bw, 1);
+      largestCC = imclose(largestCC, se);
+      largestCC = largestCC.*border_img; 
+            
+      D = bwdist(largestCC);       
+      cD = imcomplement(D);
+      cD = imopen(cD, se); 
+      cD = medfilt2(cD);
+      mask_recon_GRASP(:,:,ch) = real(mat2gray(cD, [-300,-50]));
+      
+      centerGaussian = fspecial('gaussian', [size(bw,1) size(bw,2)], size(bw,1)/4);
+      centerGraussianImg = mat2gray(centerGaussian, [0, max(max(centerGaussian))*3/4]);
+      
+      mask_recon_GRASP(:,:,ch) = max(centerGraussianImg, mask_recon_GRASP(:,:,ch));
+      mask_recon_GRASP(:,:,ch) = medfilt2(mask_recon_GRASP(:,:,ch));
+
+     
+
+%       else
+%           mask_recon_GRASP(:,:,ch) = real(zeros(size(recon_GRASP,1), size(recon_GRASP,1)));
+%       end
     end
 
     mask_recon_GRASP = mask_recon_GRASP.^2;

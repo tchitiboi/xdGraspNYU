@@ -10,7 +10,7 @@ for ii=1:nt
     DensityComp_Under(:,:,ii)=DensityComp(:,(ii-1)*nline_res+1:ii*nline_res);
 end
 [nx,ny,nc]=size(b1);
-NN=192;
+NN=192; %?????
 b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
 E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
 [nx,ntviews,nc,nt]=size(kdata_Under);

@@ -3,7 +3,7 @@ clear classes
 clc
 
 %Load the files
-cd('G:\Datasetbadresults\Very bad result\kdata,ref,traj\Pt104\')
+cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt16\')
 load kdata.mat;
 load Traj.mat;
 
@@ -121,6 +121,7 @@ mask_recon_GRASP = createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b
 
 % apply mask
 b2 = b1.*mask_recon_GRASP;
+%b2 = b1;
 param.E=MCNUFFT(Traj_Under,DensityComp_Under,b2);
 param.y=double(squeeze(kdata_Under));
 recon_GRASP = param.E'*param.y;
