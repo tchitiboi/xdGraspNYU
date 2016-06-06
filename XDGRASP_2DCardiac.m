@@ -3,10 +3,11 @@ clear classes
 clc
 
 %Load the files
-cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt16\')
+%cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt16\')
 load kdata.mat;
 load Traj.mat;
 
+%%
 [nx,ntviews,nc]=size(kdata);
 %coil=[1,2,3,4,5,6,7,8,9,10];%Coil elements used coil=[];
 coil=1:nc;
@@ -41,11 +42,41 @@ ref=ref(:,:,coil);
 [~,b1]=adapt_array_2d(squeeze(ref));
 clb1=double(b1/max(abs(b1(:))));clear ref
 
-%Get respiratory motion signal
-[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,0);
-Res_Signal=Res_Signal./max(Res_Signal(:));
+%% improve coil selection
 
-%Get cardiac motion signal
+% get coil images individually
+nline_res=nline*4;
+nt=floor(size(kdata,2)/nline_res);
+for ii=1:nt
+    kdata_Under(:,:,:,ii)=kdata(:,(ii-1)*nline_res+1:ii*nline_res,:);
+    Traj_Under(:,:,ii)=Traj(:,(ii-1)*nline_res+1:ii*nline_res);
+    DensityComp_Under(:,:,ii)=DensityComp(:,(ii-1)*nline_res+1:ii*nline_res);
+end
+%param.E=MCNUFFT_uncomb(Traj_Under,DensityComp_Under,b1);
+%param.y=double(squeeze(kdata_Under));
+%recon_GRASP = param.E'*param.y; 
+
+
+%%
+figure,imagescn(abs(recon_GRASP),[0 .0001],[],[],4)
+
+mask_recon_GRASP = rr_tcm_createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b1);
+%idx = kmeans(entropies,2);
+%idx = idx-1;
+
+%%
+b2 = b1.*mask_recon_GRASP;
+%b3_in  = b1.*mask_recon_GRASP.*permute(repmat(idx,[1 nx nx]),[2 3 1]); 
+%b3_out = b1.*mask_recon_GRASP.*permute(repmat(abs(idx-1),[1 nx nx]),[2 3 1]); 
+
+%% Get respiratory motion signal
+[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,0);
+%[Res_Signal2,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b2,nline,para,0);
+Res_Signal=Res_Signal./max(Res_Signal(:));
+%Res_Signal2=Res_Signal2./max(Res_Signal2(:));
+
+%% Get cardiac motion signal
+%[Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b2,nline,para);
 [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para);
 Cardiac_Signal=Cardiac_Signal./max(Cardiac_Signal(:));
 
@@ -117,17 +148,21 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
-mask_recon_GRASP = createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b1);
+%%
+%mask_recon_GRASP = createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b1);
 
 % apply mask
-b2 = b1.*mask_recon_GRASP;
+%b2 = b1.*mask_recon_GRASP;
 %b2 = b1;
-param.E=MCNUFFT(Traj_Under,DensityComp_Under,b2);
+%param.E=MCNUFFT(Traj_Under,DensityComp_Under,b2);
+%param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+%param.E=MCNUFFT_uncomb(Traj_Under,DensityComp_Under,b2);
+param.E=MCNUFFT_mskd(Traj_Under,DensityComp_Under,b1,mask_recon_GRASP);
 param.y=double(squeeze(kdata_Under));
 recon_GRASP = param.E'*param.y;
 figure,imagescn(abs(recon_GRASP),[0 .001],[],[],3)
 
-
+%%
 Weight1=0.03;
 % Weight2=0.01;
 param.TVWeight=max(abs(recon_GRASP(:)))*Weight1;% Cardiac dimension 
