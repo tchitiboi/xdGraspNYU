@@ -11,7 +11,7 @@ if a.adjoint,
             res(:,:,ch) = reshape(res(:,:,ch), a.imSize(1), a.imSize(2));%*conj(a.b1(:,:,ch))./(abs(a.b1(:,:,ch)).^2);
         end
         %ress(:,:,tt)=sum(res.*conj(a.b1),3)./sum(abs((squeeze(a.b1))).^2,3);
-        ress(:,:,:,tt)=res.*conj(a.b1);%./(abs(a.b1).^2);
+        ress(:,:,:,tt)=res; %.*conj(a.b1);%./(abs(a.b1).^2);
         %clear res
     end
     ress=ress.*size(a.w,1)*pi/2/size(a.w,2);
