@@ -2,8 +2,15 @@ clear all
 clear classes
 clc
 
+% 1 for CPU; 0 for GPU
+flag = 1;
+
+g = gpuDevice(1);
+reset(g);
+a=gpuArray(1); clear a
+
 %Load the files
-cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt16\')
+cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt107\')
 load kdata.mat;
 load Traj.mat;
 
@@ -13,8 +20,10 @@ coil=1:nc;
 kdata=kdata(:,:,coil);
 [nx,ntviews,nc]=size(kdata);
 
+setGlobal(2,7,8);
+
 %Number of spokes in each cardiac phase
-nline=15;
+nline=15; %%% ??? put me back
 
 %Smoothing filter span
 para.span=10;
