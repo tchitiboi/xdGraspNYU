@@ -21,7 +21,7 @@ end
 [nx,ntviews,nc,nt]=size(kdata_Under);
 kdata_Under = kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]);
 
-if flag 
+if para.flag 
     tic
     NN=192; %?????
     b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
@@ -60,9 +60,10 @@ end
 FR_Index=find(F_X<para.HF_R & F_X>para.LF_R);
 FC_Index=find(F_X<para.HF_H & F_X>para.LF_H);
 
-g = gpuDevice(1);
-reset(g);
-
+if(~para.flag)
+    g = gpuDevice(1);
+    reset(g);
+end
 
 [nx,ny,nt]=size(recon_Res);
 NN=floor(nx/16);k=0;

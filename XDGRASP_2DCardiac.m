@@ -2,12 +2,20 @@ clear all
 clear classes
 clc
 
-% 1 for CPU; 0 for GPU
-flag = 1;
+%% flags
 
+% 1 for CPU; 0 for GPU
+para.flag = 1;
+
+% set to 1, if you want to try the 'divide-and-conquer' approach
+bInitRecon=0;
+
+%%
+if(~para.flag)
 g = gpuDevice(1);
 reset(g);
 a=gpuArray(1); clear a
+end
 
 %Load the files
 %cd('D:\Datasetbadresults\Bad result\kdata,ref,traj\Pt16\')
@@ -67,7 +75,7 @@ end
 
 
 %%
-figure,imagescn(abs(recon_GRASP),[0 .0001],[],[],4)
+%figure,imagescn(abs(recon_GRASP),[0 .0001],[],[],4)
 
 mask_recon_GRASP = rr_tcm_createCoilMasks(kdata_Under, Traj_Under, DensityComp_Under, b1);
 %idx = kmeans(entropies,2);
@@ -77,6 +85,12 @@ mask_recon_GRASP = rr_tcm_createCoilMasks(kdata_Under, Traj_Under, DensityComp_U
 b2 = b1.*mask_recon_GRASP;
 %b3_in  = b1.*mask_recon_GRASP.*permute(repmat(idx,[1 nx nx]),[2 3 1]); 
 %b3_out = b1.*mask_recon_GRASP.*permute(repmat(abs(idx-1),[1 nx nx]),[2 3 1]); 
+
+
+%% get smooth inital recon 
+if(bInitRecon)
+    [recon_initial,recon_ite] = rr_temporalWindowingRecon(kdata,Traj,DensityComp,b1); %could also use b2 here
+end
 
 %% Get respiratory motion signal
 [Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,0);
