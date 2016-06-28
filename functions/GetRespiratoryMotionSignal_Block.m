@@ -47,7 +47,7 @@ else
     time = time/60
 end
 
-figure,imagescn(abs(recon_Res),[0 .00003],[],[],3)
+figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
 
 TR=para.TR*4;
