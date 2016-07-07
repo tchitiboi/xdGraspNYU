@@ -8,10 +8,10 @@ selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
 accum = zeros(size(imgs, 2), size(imgs, 1));
 
 for t=1:max(size(HF_Index))-1
-    accum = accum + squeeze(abs(selected_frequency(t,:,:)-selected_frequency(t+1,:,:)));
+    accum = accum + squeeze((selected_frequency(t,:,:)-selected_frequency(t+1,:,:)).*(selected_frequency(t,:,:)-selected_frequency(t+1,:,:)));
 end
 
-map = accum.*accum;
+map = accum;
 map = medfilt2(map);
 im_map = mat2gray(map, [0 max(max(map))]);
 
