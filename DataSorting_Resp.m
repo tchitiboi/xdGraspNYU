@@ -1,4 +1,4 @@
-function [kdata_Under2,Traj_Under2,DensityComp_Under2,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para);
+function [kdata_Under3,Traj_Under3,DensityComp_Under3,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perc, Perr);
 %Data sorting into two dynamic dimensions, one cardiac and one respiratory
 
 % [nx,ntviews,nc]=size(kdata);
@@ -42,7 +42,6 @@ for ii=1:para.CardiacPhase;
     DensityComp_Under1(:,:,:,ii)=DensityComp_Under1(:,:,index,ii);
 end
 
-Perc=6;
 tcar=floor(para.CardiacPhase/Perc);
 for ii=1:Perc
     tmp1=kdata_Under1(:,:,:,:,(ii-1)*tcar+1:ii*tcar);
@@ -60,4 +59,22 @@ for ii=1:Perc
     kdata_Under2(:,:,:,:,ii)=tmp1;
     Traj_Under2(:,:,:,ii)=tmp2;
     DensityComp_Under2(:,:,:,ii)=tmp3;
+    
+end    
+
+tres=floor(para.ntres/Perr);
+for ii=1:Perr
+    tmp1=kdata_Under2(:,:,:,(ii-1)*tres+1:ii*tres,:);
+    tmp2=Traj_Under2(:,:,(ii-1)*tres+1:ii*tres,:);
+    tmp3=DensityComp_Under2(:,:,(ii-1)*tres+1:ii*tres,:);
+    
+    tmp1=permute(tmp1,[1,2,4,3,5]);
+    
+    tmp1=reshape(tmp1,[nx,nline*tcar*tres,nc,Perc]);
+    tmp2=reshape(tmp2,[nx,nline*tcar*tres,Perc]);
+    tmp3=reshape(tmp3,[nx,nline*tcar*tres,Perc]);
+    
+    kdata_Under3(:,:,:,ii,:)=tmp1;
+    Traj_Under3(:,:,ii,:)=tmp2;
+    DensityComp_Under3(:,:,ii,:)=tmp3;
 end

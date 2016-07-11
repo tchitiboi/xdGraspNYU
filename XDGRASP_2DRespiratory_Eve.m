@@ -3,6 +3,7 @@ clear classes
 clc
 
 %Load the files
+cd ('C:\Users\tchitiboi\Desktop\testDataSeptum\Pt7')
 load kdata.mat;
 load Traj.mat;
 
@@ -16,6 +17,7 @@ nline=15;
 
 %Smoothing filter span
 para.span=10;
+para.flag=1;
 
 %Cut is the number of spokes thrown away in the beginning of acquisition
 %to achieve steady state
@@ -59,8 +61,10 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 % traj = rho * exp(1j*phi);
 % figure, plot(traj)
 
-% % %code for 6 cardiac phases
-[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para);
+% % %code for 9 cardiac phases 9 resp phases
+Perr=9;
+Perc=9;
+[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perc, Perr);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
