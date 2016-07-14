@@ -24,11 +24,11 @@ while length(valley_index)>ceil(para.HeartFS*para.TR*para.nt)+4
     hold off
 end
 if index==1
-    Cardiac_Signal=Cardiac_Signal_new; clear Cardiac_Signal_new
+    Cardiac_Signal=Cardiac_Signal_new; clear Cardiac_Signal_new;
+    [valley_values,valley_index]= findpeaks(-double(Cardiac_Signal));
+    valley_values=-valley_values;
 end
 clear index
-[valley_values,valley_index]= findpeaks(-double(Cardiac_Signal));
-valley_values=-valley_values;
 plot(Cardiac_Signal,'r','LineWidth',1)
 hold on
 plot(valley_index,valley_values,'g*')
@@ -36,8 +36,8 @@ hold off
 
 %%%exclude local false minimal 
 for ii=1:length(valley_index)
-    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1:min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),para.nt));
-    t2=valley_values(ii)<Cardiac_Signal(max(valley_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1):valley_index(ii)-1);
+    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1 : min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),para.nt));
+    t2=valley_values(ii)<Cardiac_Signal(max(valley_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1) : valley_index(ii)-1);
     if isempty(find([t1;t2]==0));
         valley_index_new(ii)=valley_index(ii);
     else
