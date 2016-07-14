@@ -6,7 +6,7 @@ global sw % parallel sectors' width: 12 16
 
 %Extract respiratory motion signal from reconstructed low temporal
 %resolution images. 
-%close all
+
 nline_res=nline*4;
 nt=floor(size(kdata,2)/nline_res);
 [nx,ny,nc]=size(b1);
@@ -116,22 +116,37 @@ subplot(2,1,1);plot(time,Res_Signal),title('Respiratory Motion Signal')
 subplot(2,1,2);plot(F_X,Res_Signal_FFT),set(gca,'XLim',[-1.5 1.5]),set(gca,'YLim',[-.02 0.08]),
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
+span = double(idivide(int32(para.span),2)*2+1);
+Res_Signal_Smooth = smooth(Res_Signal, span, 'lowess');
+[peak_values,peak_index]= findpeaks(double(Res_Signal_Smooth));
+[valley_values,valley_index]= findpeaks(-double(Res_Signal_Smooth));
+
 if ResSort
-    for ii=1:length(Res_Signal)-1
-        if Res_Signal(ii)<Res_Signal(ii+1)
-            Res_Signal1(ii)=Res_Signal(ii)*-1;
-        else
-            Res_Signal1(ii)=Res_Signal(ii);
-        end
-    end
-    if Res_Signal(end-1)<Res_Signal(end)
-        Res_Signal1(length(Res_Signal))=Res_Signal(end)*-1;
-    else
-        Res_Signal1(length(Res_Signal))=Res_Signal(end);
-    end
-    Res_Signal=Res_Signal1;clear Res_Signal1
+  [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal, para.span);
+  Res_Signal1 = InvertRespCurve( Res_Signal, peak_index, valley_index);  
+  Res_Signal_new=imresize(Res_Signal1,[nt*4,1]);
+else
+  Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
 end
-Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
+
+% if ResSort
+%     for ii=1:length(Res_Signal)-1
+%         if Res_Signal(ii)<Res_Signal(ii+1)
+%             Res_Signal2(ii)=Res_Signal(ii)*-1;
+%         else
+%             Res_Signal2(ii)=Res_Signal(ii);
+%         end
+%     end
+%     if Res_Signal(end-1)<Res_Signal(end)
+%         Res_Signal2(length(Res_Signal))=Res_Signal(end)*-1;
+%     else
+%         Res_Signal2(length(Res_Signal))=Res_Signal(end);
+%     end
+% end
+
+
+%Res_Signal_new= smooth(Res_Signal,5);
+
 % Res_Signal_new=zeros(nt*4,1);
 % Res_Signal_new(1:4:end)=Res_Signal;
 % Res_Signal_new(2:4:end)=Res_Signal;
