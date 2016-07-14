@@ -33,7 +33,16 @@ maskHeart = tmc_localizeHeart(time_series, HF_Index);
 
 tmp = time_series.*repmat(maskHeart,[1 1 nt]);
 
-figure,imagescn(abs(tmp),[0 .001],[],[],3)
+%tmp = medfilt1(tmp, 3, [], 3);
+
+tmp = tmp/max(max(max(tmp)));
+
+for t = 1:nt
+ %sigmoid filtering
+ tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(tmp(:,:,t)-repmat(0.65,[nx, ny]))/0.2));
+end
+
+figure,imagescn(abs(tmp),[0 1],[],[],3)
 
 Signal=squeeze(sum(sum(tmp,1),2));
 temp=abs(fftshift(fft(Signal)));
