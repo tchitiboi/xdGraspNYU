@@ -7,7 +7,7 @@ function mask_recon_GRASP = rr_tcm_createCoilMasks(kdata_Under, Traj_Under, Dens
     figure,imagescn(abs(recon_GRASP),[0 .0001],[],[],4)
 
    %%
-med_recon_GRASP = medfilt1(abs(recon_GRASP),3,[],4);
+%med_recon_GRASP = medfilt1(abs(recon_GRASP),3,[],4);
 averaged_recon_GRASP = squeeze(mean(recon_GRASP, 4)); % --> think about frequency domain
 entropies = zeros(size(recon_GRASP,3),1);
 entropies1 = zeros(size(recon_GRASP,3),1);
