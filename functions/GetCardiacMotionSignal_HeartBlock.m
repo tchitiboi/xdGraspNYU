@@ -1,28 +1,27 @@
-function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para);
+function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,bKwic);
 %Extract cardiac motion signal from reconstructed low temporal
 %resolution images. 
 close all
 nline_car=nline*2;
 nt=floor(size(kdata,2)/nline_car);
-for ii=1:nt
-    kdata_Under(:,:,:,ii)=kdata(:,(ii-1)*nline_car+1:ii*nline_car,:);
-    Traj_Under(:,:,ii)=Traj(:,(ii-1)*nline_car+1:ii*nline_car);
-    DensityComp_Under(:,:,ii)=DensityComp(:,(ii-1)*nline_car+1:ii*nline_car);
-end
 [nx,ny,nc]=size(b1);
 NN=floor(nx/3);%NN=80;
-b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:); 
-%b1 sensitivity map for all coils
-%code to try to give weight in the reconstruction to the different coils
-%b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,[1,3])*1;
-%b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,[4,5,6,9])*0.5;
-%b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,[2,7,8]*0.01,[1,3,4,5,6,9,10])*0.1;
-%b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,[2,7,8]*1);
-%b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,[1,3,4,5,6,9,10])*0.01;
-E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
-[nx,ntviews,nc,nt]=size(kdata_Under);
-recon_Car=E'*double(kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
-clear Traj_Under DensityComp_Under E
+b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
+    
+if(~bKwic)
+    clear kdata_Under Traj_Under DensityComp_Under
+    for ii=1:nt
+        kdata_Under(:,:,:,ii)=kdata(:,(ii-1)*nline_car+1:ii*nline_car,:);
+        Traj_Under(:,:,ii)=Traj(:,(ii-1)*nline_car+1:ii*nline_car);
+        DensityComp_Under(:,:,ii)=DensityComp(:,(ii-1)*nline_car+1:ii*nline_car);
+    end
+    E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+    [nx,ntviews,nc,nt]=size(kdata_Under);
+    recon_Car=E'*double(kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
+    clear Traj_Under DensityComp_Under E
+else
+    [recon_Car,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata,Traj,DensityComp,b1,nline_car,0);
+end
 
 [nx,ny,nt]=size(recon_Car);
 
