@@ -123,11 +123,14 @@ Res_Signal_Smooth = smooth(Res_Signal, span, 'lowess');
 
 if ResSort
   [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal, para.span);
-  Res_Signal1 = InvertRespCurve( Res_Signal, peak_index, valley_index);  
+  Res_Signal1 = InvertRespCurve( Res_Signal, peak_index, valley_index); 
+  plot(Res_Signal1)
   Res_Signal_new=imresize(Res_Signal1,[nt*4,1]);
 else
   Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
 end
+
+
 
 % if ResSort
 %     for ii=1:length(Res_Signal)-1

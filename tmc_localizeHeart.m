@@ -16,8 +16,8 @@ map = medfilt2(map);
 im_map = mat2gray(map, [0 max(max(map))]);
 
 [counts, x] = imhist(im_map,128);
-%thresh = otsuthresh(counts);
-thresh = graythresh(counts);
+thresh = otsuthresh(counts)
+%thresh = graythresh(counts)
 
 % threshold and dilate
 bw = im2bw(im_map, thresh);

@@ -4,11 +4,11 @@ vIndex = 1;
 
 if valley_index(vIndex) < peak_index(vIndex)
     for i = 1 : valley_index(vIndex)
-        if Res_Signal(i)<Res_Signal(i+1)
-            Res_Signal1(i)=Res_Signal(i)*-1;
-        else
+        %if Res_Signal(i)<Res_Signal(i+1)
+        %    Res_Signal1(i)=Res_Signal(i)*-1;
+        %else
             Res_Signal1(i)=Res_Signal(i);
-        end
+        %end
     end
     for i = valley_index(vIndex)+1 : peak_index(vIndex)-1
         Res_Signal1(i) = Res_Signal(i)*-1;
