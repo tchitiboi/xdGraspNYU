@@ -58,9 +58,9 @@ if (tres>=1)
         
         tmp1=permute(tmp1,[1,2,4,3,5]);
         
-        tmp1=reshape(tmp1,[nx,size(kdata_Under1,2)*floor(tres),nc,nResp]);
-        tmp2=reshape(tmp2,[nx,size(kdata_Under1,2)*floor(tres),nResp]);
-        tmp3=reshape(tmp3,[nx,size(kdata_Under1,2)*floor(tres),nResp]);
+        tmp1=reshape(tmp1,[nx,size(kdata_Under1,2)*floor(tres),nc,nCard]);
+        tmp2=reshape(tmp2,[nx,size(kdata_Under1,2)*floor(tres),nCard]);
+        tmp3=reshape(tmp3,[nx,size(kdata_Under1,2)*floor(tres),nCard]);
         
         kdata_Under2(:,:,:,ii,:)=tmp1;
         Traj_Under2(:,:,ii,:)=tmp2;

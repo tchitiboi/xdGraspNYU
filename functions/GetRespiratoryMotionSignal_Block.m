@@ -1,4 +1,4 @@
-function [Res_Signal_new,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort);
+function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort);
 
 global osf % oversampling: 1.5 1.25
 global wg % kernel width: 5 7
@@ -7,7 +7,8 @@ global sw % parallel sectors' width: 12 16
 %Extract respiratory motion signal from reconstructed low temporal
 %resolution images. 
 
-nline_res=nline*4;
+%nline_res=nline*4;
+nline_res=nline*8;
 nt=floor(size(kdata,2)/nline_res);
 [nx,ny,nc]=size(b1);
 imwidth = nx;
@@ -50,7 +51,7 @@ end
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
 
-TR=para.TR*4;
+TR=para.TR*8;
 time = TR:TR:nt*TR;
 F_S = 1/TR;F_X = 0:F_S/(nt-1):F_S;
 F_X=F_X-F_S/2;  %%% frequency after FFT of the motion signal
@@ -116,18 +117,22 @@ subplot(2,1,1);plot(time,Res_Signal),title('Respiratory Motion Signal')
 subplot(2,1,2);plot(F_X,Res_Signal_FFT),set(gca,'XLim',[-1.5 1.5]),set(gca,'YLim',[-.02 0.08]),
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
-span = double(idivide(int32(para.span),2)*2+1);
-Res_Signal_Smooth = smooth(Res_Signal, span, 'lowess');
+
+Res_Signal_Long = interp1( linspace(0,1,length(Res_Signal)), Res_Signal, linspace(0,1,nt*8), 'linear');
+figure, plot(Res_Signal_Long)
+span = double(idivide(int32(para.span),2)*4+1);
+Res_Signal_Smooth = smooth(Res_Signal_Long, span, 'lowess');
+figure, plot(Res_Signal_Smooth)
 [peak_values,peak_index]= findpeaks(double(Res_Signal_Smooth));
 [valley_values,valley_index]= findpeaks(-double(Res_Signal_Smooth));
+[peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal_Long, para.span);
 
-if ResSort
-  [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal, para.span);
-  Res_Signal1 = InvertRespCurve( Res_Signal, peak_index, valley_index); 
-  plot(Res_Signal1)
-  Res_Signal_new=imresize(Res_Signal1,[nt*4,1]);
+if ResSort  
+  Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index); 
+  figure, plot(Res_Signal1)
+  %Res_Signal_new=imresize(Res_Signal1,[nt*4,1]);
 else
-  Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
+  %Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
 end
 
 
