@@ -1,14 +1,15 @@
-function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,bKwic);
+function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
 %Extract cardiac motion signal from reconstructed low temporal
 %resolution images. 
 close all
-nline_car=nline*2;
-nt=floor(size(kdata,2)/nline_car);
-[nx,ny,nc]=size(b1);
-NN=floor(nx/3);%NN=80;
-b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
-    
-if(~bKwic)
+
+if ~exist('recon_Car','var')
+    nline_car=nline*2;
+    nt=floor(size(kdata,2)/nline_car);
+    [nx,ny,nc]=size(b1);
+    NN=floor(nx/3);%NN=80;
+    b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
+    % if(~bKwic)
     clear kdata_Under Traj_Under DensityComp_Under
     for ii=1:nt
         kdata_Under(:,:,:,ii)=kdata(:,(ii-1)*nline_car+1:ii*nline_car,:);
@@ -19,8 +20,9 @@ if(~bKwic)
     [nx,ntviews,nc,nt]=size(kdata_Under);
     recon_Car=E'*double(kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
     clear Traj_Under DensityComp_Under E
-else
-    [recon_Car,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata,Traj,DensityComp,b1,nline_car,0);
+    % else
+    %     [recon_Car,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata,Traj,DensityComp,b1,nline_car,0);
+    % end
 end
 
 [nx,ny,nt]=size(recon_Car);
@@ -41,7 +43,7 @@ for t = 1:nt
  tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(tmp(:,:,t)-repmat(0.65,[nx, ny]))/0.2));
 end
 
-figure,imagescn(abs(tmp),[0 1],[],[],3)
+figure,imagescn(abs(tmp),[0 .6*max(tmp(:))],[],[],3)
 
 Signal=squeeze(sum(sum(tmp,1),2));
 temp=abs(fftshift(fft(Signal)));
@@ -87,4 +89,4 @@ close all
 figure
 subplot(2,1,1);plot(time,Cardiac_Signal),title('Cardiac Motion Signal')
 subplot(2,1,2);plot(F_X,Cardiac_Signal_FFT),set(gca,'XLim',[-2 2]),set(gca,'YLim',[-.02 0.08]),
-figure,imagescn(abs(recon_Car),[0 .001],[],[],3)
+figure,imagescn(abs(recon_Car),[0 .6*max(abs(recon_Car(:)))],[],[],3)

@@ -10,16 +10,13 @@ clc
 %cd ('C:\Users\tchitiboi\Desktop\testDataSeptum\Pt7')
 %load kdata.mat;
 %load Traj.mat;
-load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/Traj.mat')
-load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/kdata.mat')
-load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/ref.mat')
+% load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/Traj.mat')
+% load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/kdata.mat')
+% load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID1221_CV_Cine_Radial_128_FID238330/ref.mat')
+load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID2851_CV_Cine_Radial_128_FID232973/kdata.mat')
+load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID2851_CV_Cine_Radial_128_FID232973/ref.mat')
+load('/Users/rambr01/Documents/MATLAB/xdgrasp/meas_MID2851_CV_Cine_Radial_128_FID232973/Traj.mat')
 end
-
-
-%%%%%%%%%%%%%
-bWithMask=1;
-%%%%%%%%%%%%%
-
 
 [nx,ntviews,nc]=size(kdata);
 coil=1:nc;%Coil elements used coil=[];coil=1:nc;
@@ -60,8 +57,12 @@ b1=double(b1/max(abs(b1(:))));clear ref
 Res_Signal=Res_Signal./max(Res_Signal(:));
 
 %Get cardiac motion signal
-bKwic=0;%bSW=1;
-[recon_Car] = getReconForCardiacMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
+%%%%%%%%%%%%%
+bWithMask=0;
+bKwic=0;
+%bSW=1; %not implemented yet ;)
+%%%%%%%%%%%%%
+[recon_Car,nt] = getReconForCardiacMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
 if(bWithMask)
     [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
     Cardiac_Signal=Cardiac_Signal./max(Cardiac_Signal(:));
@@ -76,6 +77,8 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 % % %code for 9 cardiac phases 9 resp phases
 Perr=9;
 Perc=9;
+%Perr=para.ntres;
+%Perc=para.CardiacPhase;
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
