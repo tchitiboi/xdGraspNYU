@@ -56,7 +56,11 @@ ref=ref(:,:,coil);
 b1=double(b1/max(abs(b1(:))));clear ref
 
 %Get respiratory motion signal
-[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,1);
+%%%%%%%%%%%%%
+bKwic=0;
+%%%%%%%%%%%%%
+[recon_Res,nt] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
+[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,1,nt,recon_Res);
 Res_Signal=Res_Signal./max(Res_Signal(:));
 
 %Get cardiac motion signal

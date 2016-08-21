@@ -34,6 +34,7 @@ kdata_kwic = bsxfun(@times, kdata_Under, kwicmask);
 %param.E=MCNUFFT_kwic(Traj_Under,bsxfun(@times,DensityComp_Under,kwicdcf),b1,kwicmask);
 param.E=MCNUFFT(Traj_Under,bsxfun(@times,DensityComp_Under,kwicdcf),b1);
 
+
 [nx,ntviews,nc,nt]=size(kdata_Under);
 if(bFilter)
     param.y=double(squeeze(kdata_kwic).*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));

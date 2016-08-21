@@ -1,4 +1,4 @@
-function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort);
+function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort,nt,recon_Res);
 
 global osf % oversampling: 1.5 1.25
 global wg % kernel width: 5 7
@@ -7,6 +7,7 @@ global sw % parallel sectors' width: 12 16
 %Extract respiratory motion signal from reconstructed low temporal
 %resolution images. 
 
+if ~exist('recon_Res','var')
 %nline_res=nline*4;
 nline_res=nline*8;
 nt=floor(size(kdata,2)/nline_res);
@@ -46,6 +47,7 @@ else
 
     time = toc;
     time = time/60
+end
 end
 
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
