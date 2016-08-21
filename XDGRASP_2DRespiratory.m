@@ -1,6 +1,9 @@
 %%%%%%%%%%%%%
-load_files=1;
+load_files=0;
 %%%%%%%%%%%%%
+
+addpath(genpath('functions'))
+addpath(genpath('imageAnalysis'))
 
 if(load_files)
 clear all
@@ -58,8 +61,8 @@ Res_Signal=Res_Signal./max(Res_Signal(:));
 
 %Get cardiac motion signal
 %%%%%%%%%%%%%
-bWithMask=0;
-bKwic=0;
+bWithMask=1;
+bKwic=1;
 %bSW=1; %not implemented yet ;)
 %%%%%%%%%%%%%
 [recon_Car,nt] = getReconForCardiacMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
@@ -75,14 +78,11 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 
 % % %code for 9 cardiac phases 9 resp phases
-Perr=9;
-Perc=9;
-%Perr=para.ntres;
-%Perc=para.CardiacPhase;
+Perr=9; %Perr=para.ntres;
+Perc=para.CardiacPhase;
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
-
 
 %[recon_kwic,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata_Under(:,:,),Traj_Under,DensityComp_Under,b1,nline,0);
 
@@ -137,3 +137,5 @@ end
 figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 
 figure,imagescn(abs(recon_GRASP_TM),[0 .003],[],[],3)
+
+figure,imagescn(abs(recon_GRASP(90:90+70,90:90+70,:,:)),[0 .003],[],[],4)
