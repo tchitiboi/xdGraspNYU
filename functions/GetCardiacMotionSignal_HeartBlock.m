@@ -27,21 +27,19 @@ end
 
 [nx,ny,nt]=size(recon_Car);
 
+para.LF_H=0.8;para.HF_H=2;%%% initial heart rate range
 [HF_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
 
 time_series = abs(recon_Car);
+for t = 1:nt
+ %sigmoid filtering
+ tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(time_series(:,:,t)-repmat(0.8,[nx, ny]))/0.3));
+end
+
 maskHeart = tmc_localizeHeart(time_series, HF_Index);
 
 tmp = time_series.*repmat(maskHeart,[1 1 nt]);
-
-%tmp = medfilt1(tmp, 3, [], 3);
-
 tmp = tmp/max(max(max(tmp)));
-
-for t = 1:nt
- %sigmoid filtering
- tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(tmp(:,:,t)-repmat(0.65,[nx, ny]))/0.2));
-end
 
 figure,imagescn(abs(tmp),[0 .6*max(tmp(:))],[],[],3)
 

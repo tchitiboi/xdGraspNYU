@@ -7,9 +7,7 @@ global sw % parallel sectors' width: 12 16
 %Extract respiratory motion signal from reconstructed low temporal
 %resolution images. 
 
-if ~exist('recon_Res','var')
-%nline_res=nline*4;
-nline_res=nline*8;
+nline_res=nline*4;
 nt=floor(size(kdata,2)/nline_res);
 [nx,ny,nc]=size(b1);
 imwidth = nx;
@@ -25,7 +23,7 @@ kdata_Under = kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]);
 
 if para.flag 
     tic
-    NN=192; %?????
+    NN=192; %image size
     b1=b1((nx-NN)/2+1:end-(nx-NN)/2,(nx-NN)/2+1:end-(nx-NN)/2,:);
 
     E1=MCNUFFT(Traj_Under,DensityComp_Under,b1);
@@ -53,7 +51,7 @@ end
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
 
-TR=para.TR*8;
+TR=para.TR*4;
 time = TR:TR:nt*TR;
 F_S = 1/TR;F_X = 0:F_S/(nt-1):F_S;
 F_X=F_X-F_S/2;  %%% frequency after FFT of the motion signal
@@ -69,13 +67,15 @@ if(~para.flag)
 end
 
 [nx,ny,nt]=size(recon_Res);
-NN=floor(nx/16);k=0;
+%NN=floor(nx/16);k=0;
+NN=floor(nx/10);k=0;
 for ii=1:3:nx-NN
     for jj=1:3:ny-NN
         k=k+1;
         %tmp=gpuArray(abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:)));
         tmp=abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:));
         Signal(:,k)=squeeze(sum(sum(tmp,1),2));
+        %Signal(:,k)= Signal(:,k)/(NN*NN);
         %aux = gpuArray(Signal(:,k));
         temp=abs(fftshift(fft(Signal(:,k))));
         Signal_FFT(:,k) = temp/max(temp(:));
@@ -88,8 +88,11 @@ Res_Peak=squeeze(Signal_FFT(FR_Index,:));
 Car_Peak=squeeze(Signal_FFT(FC_Index,:));
 
 ratio_Peak = max(Res_Peak)./max(Car_Peak);
+
 n = find(ratio_Peak == max(ratio_Peak));
 m = find(Res_Peak(:,n) == max(Res_Peak(:,n)));
+
+disp(sprintf('Peak requency: %f', Res_Peak(m,n)));
 
 %[m,n]=find(Res_Peak==max(Res_Peak(:)));
 ResFS=F_X(FR_Index);
@@ -120,21 +123,32 @@ subplot(2,1,2);plot(F_X,Res_Signal_FFT),set(gca,'XLim',[-1.5 1.5]),set(gca,'YLim
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
 
-Res_Signal_Long = interp1( linspace(0,1,length(Res_Signal)), Res_Signal, linspace(0,1,nt*8), 'linear');
+Res_Signal_Long = interp1( linspace(0,1,length(Res_Signal)), Res_Signal, linspace(0,1,nt*4), 'linear');
 figure, plot(Res_Signal_Long)
-span = double(idivide(int32(para.span),2)*4+1);
+span = double(idivide(int32(para.span),2)*8+1);
 Res_Signal_Smooth = smooth(Res_Signal_Long, span, 'lowess');
 figure, plot(Res_Signal_Smooth)
 [peak_values,peak_index]= findpeaks(double(Res_Signal_Smooth));
 [valley_values,valley_index]= findpeaks(-double(Res_Signal_Smooth));
 [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal_Long, para.span);
 
+avg_valley = abs(median(valley_values));
+max_peak = abs(max(peak_values));
+
+% if avg_valley > 0.1 & max_peak < 0.4
+%   Res_Signal_Smooth = max(Res_Signal_Smooth) - Res_Signal_Smooth + min(Res_Signal_Smooth);
+%   Res_Signal_Long = max(Res_Signal_Long) - Res_Signal_Long + min(Res_Signal_Long);
+%   figure, plot(Res_Signal_Smooth)
+%   [peak_values,peak_index]= findpeaks(double(Res_Signal_Smooth));
+%   [valley_values,valley_index]= findpeaks(-double(Res_Signal_Smooth));
+%   [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal_Long, para.span);
+% end
+
 if ResSort  
-  Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index); 
+  Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index);    
   figure, plot(Res_Signal1)
-  %Res_Signal_new=imresize(Res_Signal1,[nt*4,1]);
 else
-  %Res_Signal_new=imresize(Res_Signal,[nt*4,1]);
+  Res_Signal1 = Res_Signal_Long;
 end
 
 

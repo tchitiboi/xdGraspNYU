@@ -5,6 +5,7 @@ fft_imgs = fftshift(fft(permuted_imgs), 1);
 img_fft_imgs = mat2gray(real(fft_imgs));
 selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
 
+selected_frequency = medfilt1(selected_frequency,3,[],1);
 accum = zeros(size(imgs, 2), size(imgs, 1));
 
 for t=1:max(size(HF_Index))-1
@@ -15,8 +16,9 @@ map = accum;
 map = medfilt2(map);
 im_map = mat2gray(map, [0 max(max(map))]);
 
-[counts, x] = imhist(im_map,128);
+[counts, x] = imhist(im_map,256);
 thresh = otsuthresh(counts)
+thresh = thresh * 2/3.0
 %thresh = graythresh(counts)
 
 % threshold and dilate
