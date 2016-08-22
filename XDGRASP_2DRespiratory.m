@@ -56,20 +56,54 @@ ref=ref(:,:,coil);
 b1=double(b1/max(abs(b1(:))));clear ref
 
 %Get respiratory motion signal
-%%%%%%%%%%%%%
-bKwic=0;
-%%%%%%%%%%%%%
-[recon_Res,nt] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
-[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,1,nt,recon_Res);
+[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,1);
 Res_Signal=Res_Signal./max(Res_Signal(:));
+
+
+
+%%%%%%%%%%%%%
+% ResSort=0;
+% fov_size=floor(nx/2);
+% bKwicResp=0;
+% %%%%%%%%%%%%%
+% % if(~bKwicResp)
+%     nline_res = nline*4;NProj=0;
+%     [recon_Res,nt] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,0,NProj,0);
+%     [Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,nline_res,para,ResSort,nt,recon_Res);
+%     %[Res_Signal_new,para,U,S,V]=GetRespiratoryMotionSignal_Block_SVD(kdata,Traj,DensityComp,b1,nline,para,ResSort);
+%     %%%%%%%%%%%%%
+% else
+%     %bKwic=1;nline_res = nline*4; NProj=nline*10-1;
+%     nline_res = nline*4; NProj=nline*9-1;
+%     [recon_Res_kwic,nt_kwic] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,0);
+%     [Res_Signal_kwic,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,nline_res,para,ResSort,nt_kwic,recon_Res_kwic);
+%     Res_Signal = Res_Signal_kwic;
+% end
+% Res_Signal=Res_Signal./max(Res_Signal(:));
+%%%%%%%%%%%%%
+
 
 %Get cardiac motion signal
 %%%%%%%%%%%%%
-bWithMask=1;
-bKwic=1;
-%bSW=1; %not implemented yet ;)
+bWithMask=1; 
+bKwicCard=1;
+bSW=0;bFilt=0;
 %%%%%%%%%%%%%
-[recon_Car,nt] = getReconForCardiacMotionDetection(kdata,Traj,DensityComp,b1,nline,para,bKwic);
+fov_size=floor(nx/3); 
+%%%%%%%%%%%%%
+if(~bKwicCard && ~bSW)
+    bFilt=1;
+    nline_res=nline*2;NProj=0;
+    [recon_Car,nt] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,0,0,1,0);
+else
+    if(bKwicCard)
+        nline_res = nline*2; NProj=nline*10-5;
+        [Cardiac_Signal,nt_kwic] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,0,0); 
+    else
+        nline_res = nline*2; NProj=nline*10-5;
+        [Cardiac_Signal,nt_sw] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,bFilt,1); 
+    end
+end
 if(bWithMask)
     [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
     Cardiac_Signal=Cardiac_Signal./max(Cardiac_Signal(:));
@@ -83,22 +117,26 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 % % %code for 9 cardiac phases 9 resp phases
 Perr=9; %Perr=para.ntres;
-Perc=para.CardiacPhase;
+Perc=9; %para.CardiacPhase;
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
 %[recon_kwic,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata_Under(:,:,),Traj_Under,DensityComp_Under,b1,nline,0);
 
-
-%param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
-% param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
-param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
-%param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
-
-param.y=double(squeeze(kdata_Under));
-% param.Res_Signal=Res_Signal_Under;
-recon_GRASP=param.E'*param.y;
+% bKwicInit=1;
+% if(~bKwicInit)
+    %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
+    % param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+    param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
+    %param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+    
+    param.y=double(squeeze(kdata_Under));
+    % param.Res_Signal=Res_Signal_Under;
+    recon_GRASP=param.E'*param.y;
+% else
+%     recon_GRASP_kwic=initializeWithKwic(kdata_Under,Traj_Under,DensityComp_Under,b1,0);
+% end
 
 figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 
