@@ -86,8 +86,8 @@ Res_Signal=Res_Signal./max(Res_Signal(:));
 %Get cardiac motion signal
 %%%%%%%%%%%%%
 bWithMask=1; 
-bKwicCard=1;
-bSW=0;bFilt=0;
+bKwicCard=0;
+bSW=0;
 %%%%%%%%%%%%%
 fov_size=floor(nx/3); 
 %%%%%%%%%%%%%
@@ -98,10 +98,11 @@ if(~bKwicCard && ~bSW)
 else
     if(bKwicCard)
         nline_res = nline*2; NProj=nline*10-5;
-        [Cardiac_Signal,nt_kwic] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,0,0); 
+        [recon_Car,nt_kwic] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,0,0); 
     else
+        bFilt=1;
         nline_res = nline*2; NProj=nline*10-5;
-        [Cardiac_Signal,nt_sw] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,bFilt,1); 
+        [recon_Car,nt_sw] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,bFilt,1); 
     end
 end
 if(bWithMask)
@@ -117,7 +118,7 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 % % %code for 9 cardiac phases 9 resp phases
 Perr=9; %Perr=para.ntres;
-Perc=9; %para.CardiacPhase;
+Perc=para.CardiacPhase;
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
@@ -162,7 +163,7 @@ clear nline ntviews nx N ans
 %%%
 clc
 tic
-for n=1:2
+for n=1:3
     recon_GRASP = CSL1NlCg(recon_GRASP,param);
 end
 time=toc;
