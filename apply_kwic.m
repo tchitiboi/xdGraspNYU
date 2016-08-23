@@ -1,4 +1,5 @@
-function [recon_kwic,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata,Traj,DensityComp,b1,firstRingSize,Nproj,bFilter,bSW)
+function [recon_kwic] = apply_kwic(kdata,Traj,DensityComp,b1,firstRingSize,Nproj,bFilter,bSW)
+%function [recon_kwic,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata,Traj,DensityComp,b1,firstRingSize,Nproj,bFilter,bSW)
 
 % Required parameters
 %Nproj           =  89;
@@ -37,7 +38,7 @@ for ii=bPre+1:firstRingSize:size(kdata,2)-Nproj+bPre
     DensityComp_Under(:,:,c)=DensityComp(:,ii-bPre:ii+Nproj-1-bPre);
     c = c+1;
 end
-
+clear kdata Traj DensityComp
 
 [~,~,nc,nt] = size(kdata_Under);
 
@@ -46,18 +47,19 @@ end
 
 %% kdata_kwic = kdata .* (kwicmask .* kwicdcf)
 kdata_kwic = bsxfun(@times, kdata_Under, kwicmask);
+clear kdata_Under kwicmask 
 
 %param.E=MCNUFFT_kwic(Traj_Under,bsxfun(@times,DensityComp_Under,kwicdcf),b1,kwicmask);
-param.E=MCNUFFT(Traj_Under,bsxfun(@times,DensityComp_Under,kwicdcf),b1);
-
+E=MCNUFFT(Traj_Under,bsxfun(@times,DensityComp_Under,kwicdcf),b1);
+clear Traj_Under DensityComp_Under kwicdcf b1
 
 [nx,ntviews,nc,nt]=size(kdata_Under);
 if(bFilter)
-    param.y=double(squeeze(kdata_kwic).*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
+    kdata_kwic=double(squeeze(kdata_kwic).*repmat(kaiser(nx,20),[1,ntviews,nc,nt])); 
 else
-    param.y=double(squeeze(kdata_kwic));
+    kdata_kwic=double(squeeze(kdata_kwic)); 
 end
-recon_kwic = param.E'*param.y; 
+recon_kwic = E'*kdata_kwic; 
 
 % %%
 % Weight1=0.01;
