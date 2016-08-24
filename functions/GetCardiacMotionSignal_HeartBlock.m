@@ -1,4 +1,4 @@
-function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
+function [Cardiac_Signal,para,maskHeart]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
 %Extract cardiac motion signal from reconstructed low temporal
 %resolution images. 
 close all
@@ -27,7 +27,7 @@ end
 
 [nx,ny,nt]=size(recon_Car);
 
-para.LF_H=0.8;para.HF_H=2;%%% initial heart rate range
+para.LF_H=0.8;para.HF_H=1.5;%%% initial heart rate range
 [HF_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
 
 time_series = abs(recon_Car);
@@ -72,13 +72,13 @@ Cardiac_Signal_FFT=Signal_FFT;
 Cardiac_Signal=smooth(Cardiac_Signal,4,'lowess');
 
 Fs=1/para.TR;
-fc_high = para.ResFS*1.5;
-Filter_Bandpass = fir1(size(Cardiac_Signal,1), 2*fc_high/Fs,'low');
-Signal_Filtered=conv([Cardiac_Signal;Cardiac_Signal;Cardiac_Signal],Filter_Bandpass);
-temp = Signal_Filtered(size(Cardiac_Signal,1)*1.5+1:size(Cardiac_Signal,1)*2.5,:);
+% fc_high = para.ResFS*1.5;
+% Filter_Bandpass = fir1(size(Cardiac_Signal,1), 2*fc_high/Fs,'low');
+% Signal_Filtered=conv([Cardiac_Signal;Cardiac_Signal;Cardiac_Signal],Filter_Bandpass);
+% temp = Signal_Filtered(size(Cardiac_Signal,1)*1.5+1:size(Cardiac_Signal,1)*2.5,:);
 Cardiac_Signal=Cardiac_Signal/max(Cardiac_Signal);
-temp=temp./max(temp);
-Cardiac_Signal=Cardiac_Signal./temp;clear temp
+% temp=temp./max(temp);
+% Cardiac_Signal=Cardiac_Signal./temp;clear temp
 Cardiac_Signal=imresize(Cardiac_Signal,[nt*2,1]);
 
 time = para.TR:para.TR:nt*2*para.TR;

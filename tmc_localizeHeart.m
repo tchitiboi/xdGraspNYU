@@ -1,16 +1,30 @@
 function mask = tmc_localizeHeart(imgs, HF_Index)
 
-permuted_imgs = permute(imgs, [3 2 1]);
-fft_imgs = fftshift(fft(permuted_imgs), 1);
-img_fft_imgs = mat2gray(real(fft_imgs));
-selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
+for t = 1:size(imgs,3)
+  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),2);
+end
 
+permuted_imgs = permute(smooth_imgs, [3 2 1]);
+fft_imgs = fftshift(fft(permuted_imgs), 1);
+
+for x = 1:size(smooth_imgs,1)
+    for y = 1:size(smooth_imgs,2)
+        fft_imgs(:,y,x) = fft_imgs(:,y,x)/max(fft_imgs(:,y,x));
+    end
+end
+
+%fft_imgs = fft_imgs/max(max(max(fft_imgs)));
+
+img_fft_imgs = mat2gray(real(fft_imgs));
+
+selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
 selected_frequency = medfilt1(selected_frequency,3,[],1);
 accum = zeros(size(imgs, 2), size(imgs, 1));
 
 for t=1:max(size(HF_Index))-1
-    accum = accum + squeeze((selected_frequency(t,:,:)-selected_frequency(t+1,:,:)).*(selected_frequency(t,:,:)-selected_frequency(t+1,:,:)));
+    accum = accum + (medfilt2(squeeze(selected_frequency(t,:,:)))-medfilt2(squeeze(selected_frequency(t+1,:,:)))).^2;
 end
+
 
 map = accum;
 map = medfilt2(map);
@@ -18,13 +32,15 @@ im_map = mat2gray(map, [0 max(max(map))]);
 
 [counts, x] = imhist(im_map,256);
 thresh = otsuthresh(counts)
-thresh = thresh * 2/3.0
+thresh = thresh;% * 2/3.0
 %thresh = graythresh(counts)
 
 % threshold and dilate
 bw = im2bw(im_map, thresh);
 se = strel('octagon',9);
 bw_dilated = imdilate(bw,se);
+se = strel('octagon',6);
+bw_dilated = imclose(bw_dilated,se);
 bw_dilated = imfill(bw_dilated, 'holes');
 
 % get largest cc
@@ -45,9 +61,11 @@ for x = 1:size(largestCC,1)
 end
 
 largestCC = largestCC.*border_img; 
+se = strel('octagon',9);
 closed_largestCC = imclose(largestCC,se);
 closed_largestCC = imdilate(largestCC,se);
-largestCC = largestCC.*border_img; 
+closed_largestCC = imclose(largestCC,se);
+%largestCC = largestCC.*border_img; 
 closed_largestCC = imfill(closed_largestCC, 'holes');
 
 %figure,imagescn(abs(ipermute(img_fft_imgs, [3 2 1])),[0 0.5],[],[],3)

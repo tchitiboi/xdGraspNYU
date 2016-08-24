@@ -1,4 +1,4 @@
-function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort,nt,recon_Res);
+function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,ResSort);
 
 global osf % oversampling: 1.5 1.25
 global wg % kernel width: 5 7
@@ -46,10 +46,17 @@ else
     time = toc;
     time = time/60
 end
-end
 
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
+dpad = floor((size(recon_Res,1) - size(maskHeart,1))/2);
+mask = padarray(maskHeart,[dpad, dpad],0,'both');
+if size(recon_Res,1) - size(mask,1) > 0
+  mask = padarray(mask,[1, 1],0,'pre');
+end
+se = strel('octagon',12);
+mask = imdilate(mask,se);
 
+recon_Res = recon_Res .* repmat(imcomplement(mask),[1 1 size(recon_Res,3)]);
 
 TR=para.TR*4;
 time = TR:TR:nt*TR;
@@ -71,15 +78,20 @@ end
 NN=floor(nx/10);k=0;
 for ii=1:3:nx-NN
     for jj=1:3:ny-NN
-        k=k+1;
         %tmp=gpuArray(abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:)));
-        tmp=abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:));
-        Signal(:,k)=squeeze(sum(sum(tmp,1),2));
-        %Signal(:,k)= Signal(:,k)/(NN*NN);
-        %aux = gpuArray(Signal(:,k));
-        temp=abs(fftshift(fft(Signal(:,k))));
-        Signal_FFT(:,k) = temp/max(temp(:));
-        %Signal_FFT(:,k)=gather(temp);clear temp tmp
+        tmp=abs(squeeze(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:)));
+        bin_tmp = tmp;
+        bin_tmp(bin_tmp>0.0000001) = 1;
+        s = sum(sum(sum(bin_tmp,1),2),3);
+        if s/(NN*NN*nt) > 0.9
+            k=k+1;
+            Signal(:,k)=squeeze(sum(sum(tmp,1),2));
+            %Signal(:,k)= Signal(:,k)/(NN*NN);
+            %aux = gpuArray(Signal(:,k));
+            temp=abs(fftshift(fft(Signal(:,k))));
+            Signal_FFT(:,k) = temp/max(temp(:));
+            %Signal_FFT(:,k)=gather(temp);clear temp tmp
+        end
     end
 end
 
@@ -89,12 +101,13 @@ Car_Peak=squeeze(Signal_FFT(FC_Index,:));
 
 ratio_Peak = max(Res_Peak)./max(Car_Peak);
 
-n = find(ratio_Peak == max(ratio_Peak));
-m = find(Res_Peak(:,n) == max(Res_Peak(:,n)));
+% n = find(ratio_Peak == max(ratio_Peak));
+% m = find(Res_Peak(:,n) == max(Res_Peak(:,n)));
+
+[m,n]=find(Res_Peak==max(Res_Peak(:)));
 
 disp(sprintf('Peak requency: %f', Res_Peak(m,n)));
 
-%[m,n]=find(Res_Peak==max(Res_Peak(:)));
 ResFS=F_X(FR_Index);
 ResFS=ResFS(m);
 
@@ -116,7 +129,7 @@ Res_Signal=smooth(Res_Signal,5,'moving');
 % % % Res_Signal_new = Signal_Filtered(size(Res_Signal,1)*1.5+1:size(Res_Signal,1)*2.5,:);
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-close all
+%close all
 figure
 subplot(2,1,1);plot(time,Res_Signal),title('Respiratory Motion Signal')
 subplot(2,1,2);plot(F_X,Res_Signal_FFT),set(gca,'XLim',[-1.5 1.5]),set(gca,'YLim',[-.02 0.08]),
@@ -125,9 +138,9 @@ figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 
 Res_Signal_Long = interp1( linspace(0,1,length(Res_Signal)), Res_Signal, linspace(0,1,nt*4), 'linear');
 figure, plot(Res_Signal_Long)
-span = double(idivide(int32(para.span),2)*8+1);
+span = double(idivide(int32(para.span),2)*4+1);
 Res_Signal_Smooth = smooth(Res_Signal_Long, span, 'lowess');
-figure, plot(Res_Signal_Smooth)
+%figure, plot(Res_Signal_Smooth)
 [peak_values,peak_index]= findpeaks(double(Res_Signal_Smooth));
 [valley_values,valley_index]= findpeaks(-double(Res_Signal_Smooth));
 [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal_Long, para.span);
