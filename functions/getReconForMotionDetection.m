@@ -25,7 +25,8 @@ if(~bKwic)
     recon=E'*double(kdata_Under.*repmat(kaiser(nx,20),[1,ntviews,nc,nt]));
     clear Traj_Under DensityComp_Under E
 else
-    [recon,~,~,~,~,~] = apply_kwic(kdata,Traj,DensityComp,b1,nline_res,Nproj,bFilt,bSW);
+    %[recon,~,~,~,~,~] = apply_kwic(kdata,Traj,DensityComp,b1,nline_res,Nproj,bFilt,bSW);
+    [recon] = apply_kwic(kdata,Traj,DensityComp,b1,nline_res,Nproj,bFilt,bSW);
 end
     
 end
