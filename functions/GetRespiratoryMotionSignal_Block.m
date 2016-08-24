@@ -1,4 +1,4 @@
-function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort,nt,recon_Res);
+function [Res_Signal1,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,ResSort);
 
 global osf % oversampling: 1.5 1.25
 global wg % kernel width: 5 7
@@ -45,7 +45,6 @@ else
 
     time = toc;
     time = time/60
-end
 end
 
 figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
@@ -144,7 +143,7 @@ max_peak = abs(max(peak_values));
 %   [peak_values,peak_index,valley_values,valley_index] = SnapExtrema( peak_values,peak_index,valley_values,valley_index, Res_Signal_Long, para.span);
 % end
 
-if ResSort  
+if(ResSort)
   Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index);    
   figure, plot(Res_Signal1)
 else

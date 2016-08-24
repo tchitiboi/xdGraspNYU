@@ -1,7 +1,7 @@
-function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
+function [Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car,maskHeart);
 %Extract cardiac motion signal from reconstructed low temporal
 %resolution images. 
-close all
+%close all
 
 if ~exist('recon_Car','var')
     nline_car=nline*2;
@@ -36,7 +36,10 @@ for t = 1:nt
  tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(time_series(:,:,t)-repmat(0.8,[nx, ny]))/0.3));
 end
 
+if ~exist('maskHeart','var')
 maskHeart = tmc_localizeHeart(time_series, HF_Index);
+end
+para.maskHeart = maskHeart;
 
 tmp = time_series.*repmat(maskHeart,[1 1 nt]);
 tmp = tmp/max(max(max(tmp)));
