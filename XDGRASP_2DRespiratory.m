@@ -9,12 +9,27 @@ if(load_files)
     clear all
     clear classes
     clc
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/Traj.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/ref.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/kdata.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/kdata.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/ref.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/Traj.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/kdata.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/ref.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/Traj.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/kdata.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/ref.mat')
+    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/Traj.mat')
+    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/kdata.mat')
+    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/ref.mat')
+    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 end
 %Load the files
-cd ('G:\NYU\cardiodata\testDataSeptum\normal\Pt47')
-load kdata.mat;
-load Traj.mat;
-load ref.mat
+% cd ('G:\NYU\cardiodata\testDataSeptum\normal\Pt47')
+% load kdata.mat;
+% load Traj.mat;
+% load ref.mat
 
 [nx,ntviews,nc]=size(kdata);
 coil=1:nc;%Coil elements used coil=[];coil=1:nc;
@@ -75,7 +90,7 @@ b1=double(b1/max(abs(b1(:))));clear ref
 %Get cardiac motion signal
 %%%%%%%%%%%%%
 bWithMask=1; 
-bKwicCard=1;
+bKwicCard=0;
 bSW=0;
 %%%%%%%%%%%%%
 fov_size=floor(nx/3); 
@@ -103,8 +118,8 @@ else
 end
 
 %Get respiratory motion signal
-[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
-%[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1, recon_Car);
+%[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
+[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,0, recon_Car);
 
 Res_Signal=Res_Signal./max(Res_Signal(:));
 
