@@ -1,8 +1,10 @@
 function mask = tmc_localizeHeart(imgs, HF_Index)
 
 for t = 1:size(imgs,3)
-  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),2);
+  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),3);
 end
+
+%smooth_imgs = medfilt1(smooth_imgs, 3, [], 3);
 
 permuted_imgs = permute(smooth_imgs, [3 2 1]);
 fft_imgs = fftshift(fft(permuted_imgs), 1);
@@ -13,12 +15,9 @@ for x = 1:size(smooth_imgs,1)
     end
 end
 
-%fft_imgs = fft_imgs/max(max(max(fft_imgs)));
-
 img_fft_imgs = mat2gray(real(fft_imgs));
 
 selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
-selected_frequency = medfilt1(selected_frequency,3,[],1);
 accum = zeros(size(imgs, 2), size(imgs, 1));
 
 for t=1:max(size(HF_Index))-1
@@ -37,7 +36,7 @@ thresh = thresh;% * 2/3.0
 
 % threshold and dilate
 bw = im2bw(im_map, thresh);
-se = strel('octagon',9);
+se = strel('octagon',6);
 bw_dilated = imdilate(bw,se);
 se = strel('octagon',6);
 bw_dilated = imclose(bw_dilated,se);
@@ -70,6 +69,7 @@ closed_largestCC = imfill(closed_largestCC, 'holes');
 
 %figure,imagescn(abs(ipermute(img_fft_imgs, [3 2 1])),[0 0.5],[],[],3)
 figure,imagescn(abs(ipermute(closed_largestCC, [2 1])),[0 1],[],[],2)
+figure,imagescn(abs(accum),[0 1],[],[],2)
 
 mask = abs(ipermute(closed_largestCC, [2 1]));
 

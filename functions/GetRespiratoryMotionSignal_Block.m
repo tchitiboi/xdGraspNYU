@@ -53,7 +53,7 @@ mask = padarray(maskHeart,[dpad, dpad],0,'both');
 if size(recon_Res,1) - size(mask,1) > 0
   mask = padarray(mask,[1, 1],0,'pre');
 end
-se = strel('octagon',12);
+se = strel('octagon',9);
 mask = imdilate(mask,se);
 
 recon_Res = recon_Res .* repmat(imcomplement(mask),[1 1 size(recon_Res,3)]);
@@ -83,7 +83,7 @@ for ii=1:3:nx-NN
         bin_tmp = tmp;
         bin_tmp(bin_tmp>0.0000001) = 1;
         s = sum(sum(sum(bin_tmp,1),2),3);
-        if s/(NN*NN*nt) > 0.9
+        if s/(NN*NN*nt) > 0.95
             k=k+1;
             Signal(:,k)=squeeze(sum(sum(tmp,1),2));
             %Signal(:,k)= Signal(:,k)/(NN*NN);
