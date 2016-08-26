@@ -66,7 +66,14 @@ else
     TVObj = 0;
 end
 
-res=L2Obj+param.TVWeight*TVObj;
+if param.L1Weight
+    w = param.W*(x+t*dx); 
+    WObj = sum((w(:).*conj(w(:))+param.l1Smooth).^(1/2));
+else
+    WObj = 0;
+end
+
+res=L2Obj+param.TVWeight*TVObj+param.L1Weight*WObj;
 
 function g = grad(x,param)%***********************************************
 
@@ -80,4 +87,11 @@ else
     TVGrad=0;
 end
 
-g=L2Grad+param.TVWeight*TVGrad;
+if param.L1Weight
+    w = param.W*x;
+    WGrad = param.W'*(w.*(w.*conj(w)+param.l1Smooth).^(-0.5));
+else
+    WGrad=0;
+end
+
+g=L2Grad+param.TVWeight*TVGrad+param.L1Weight*WGrad;
