@@ -1,7 +1,7 @@
 function mask = tmc_localizeHeart(imgs, HF_Index)
 
 for t = 1:size(imgs,3)
-  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),3);
+  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),2);
 end
 
 %smooth_imgs = medfilt1(smooth_imgs, 3, [], 3);
@@ -31,7 +31,7 @@ im_map = mat2gray(map, [0 max(max(map))]);
 
 [counts, x] = imhist(im_map,256);
 thresh = otsuthresh(counts)
-thresh = thresh;% * 2/3.0
+thresh = thresh * 3/4.0
 %thresh = graythresh(counts)
 
 % threshold and dilate
@@ -62,9 +62,11 @@ end
 largestCC = largestCC.*border_img; 
 se = strel('octagon',9);
 closed_largestCC = imclose(largestCC,se);
-closed_largestCC = imdilate(largestCC,se);
-closed_largestCC = imclose(largestCC,se);
-%largestCC = largestCC.*border_img; 
+closed_largestCC = imdilate(closed_largestCC,se);
+closed_largestCC = imclose(closed_largestCC,se);
+closed_largestCC = imopen(closed_largestCC,se);
+%se = strel('octagon',3);
+closed_largestCC = imerode(closed_largestCC,se);
 closed_largestCC = imfill(closed_largestCC, 'holes');
 
 %figure,imagescn(abs(ipermute(img_fft_imgs, [3 2 1])),[0 0.5],[],[],3)
