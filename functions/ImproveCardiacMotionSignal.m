@@ -40,7 +40,7 @@ hold off
 
 %%%exclude local false minima 
 for ii=1:length(valley_index)
-    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1 : min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(valley_index)));
+    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1 : min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(Cardiac_Signal)));
     t2=valley_values(ii)<Cardiac_Signal(max(valley_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1) : valley_index(ii)-1);
     if isempty(find([t1;t2]==0));
         valley_index_new(ii)=valley_index(ii);
@@ -51,7 +51,7 @@ end
 
 %%%exclude local false maxima 
 for ii=1:length(peak_index)
-    t1=peak_values(ii)<Cardiac_Signal(peak_index(ii)+1 : min(peak_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(peak_index)));
+    t1=peak_values(ii)<Cardiac_Signal(peak_index(ii)+1 : min(peak_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(Cardiac_Signal)));
     t2=peak_values(ii)<Cardiac_Signal(max(peak_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1) : peak_index(ii)-1);
     if isempty(find([t1;t2]==0));
         peak_index_new(ii) = peak_index(ii);
