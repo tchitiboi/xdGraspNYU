@@ -5,31 +5,31 @@ load_files=0;
 addpath(genpath('functions'))
 addpath(genpath('imageAnalysis'))
 
-if(load_files)
-    clear all
-    clear classes
-    clc
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/Traj.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/ref.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/kdata.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/kdata.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/ref.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/Traj.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/kdata.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/ref.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/Traj.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/kdata.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/ref.mat')
-    %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/Traj.mat')
-    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/kdata.mat')
-    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/ref.mat')
-    load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
-end
+% if(load_files)
+%     clear all
+%     clear classes
+%     clc
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/Traj.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/ref.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/kdata.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/kdata.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/ref.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/Traj.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/kdata.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/ref.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/Traj.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/kdata.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/ref.mat')
+%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/Traj.mat')
+%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/kdata.mat')
+%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/ref.mat')
+%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
+% end
 %Load the files
-% cd ('G:\NYU\cardiodata\testDataSeptum\normal\Pt47')
-% load kdata.mat;
-% load Traj.mat;
-% load ref.mat
+cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\lowEF\Pt75')
+load kdata.mat;
+load Traj.mat;
+load ref.mat
 
 [nx,ntviews,nc]=size(kdata);
 coil=1:nc;%Coil elements used coil=[];coil=1:nc;
@@ -55,8 +55,8 @@ para=TimeStamp(para);
 
 %%%Find coil element for Cardiac signal
 %%% This may need some optimizations 
-para.LF_H=0.6;para.HF_H=2;%%% initial heart rate range
-para.LF_R=0.1;para.HF_R=0.3;%%% initial respiration rate range
+para.LF_H=0.8;para.HF_H=2;%%% initial heart rate range
+para.LF_R=0.1;para.HF_R=0.4;%%% initial respiration rate range
 
 %%%Calculate coil sensitivities
 kdata=kdata.*repmat(sqrt(DensityComp),[1,1,nc]);
@@ -93,7 +93,7 @@ bWithMask=1;
 bKwicCard=0;
 bSW=0;
 %%%%%%%%%%%%%
-fov_size=floor(nx/3); 
+fov_size=floor(nx/2.5); 
 %%%%%%%%%%%%%
 if(~bKwicCard && ~bSW)
     bFilt=1;
@@ -119,9 +119,10 @@ end
 
 %Get respiratory motion signal
 %[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
-[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,0, recon_Car);
-
+[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,1);
 Res_Signal=Res_Signal./max(Res_Signal(:));
+%Res_Signal= repmat(max(Res_Signal(:)), [length(Res_Signal),1]) - Res_Signal;
+
 
 %Get cardiac motion signal
 %[Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para);
@@ -134,6 +135,8 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 Perr = 9; %Perr=para.ntres;
 %Perc=para.CardiacPhase;
 Perc = 9;
+%Res_Signal_Bins = getRespBins(Res_Signal, Perr);
+%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins,nline,para, Perr, Perc);
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
@@ -147,7 +150,7 @@ Perc = 9;
     param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
     %param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
     
-    param.y=double(squeeze(kdata_Under));
+    param.y=kdata_Under;
     % param.Res_Signal=Res_Signal_Under;
     recon_GRASP=param.E'*param.y;
 % else
@@ -178,7 +181,7 @@ clear nline ntviews nx N ans
 %%%
 clc
 tic
-for n=1:3
+for n=1:4
     recon_GRASP = CSL1NlCg(recon_GRASP,param);
 end
 time=toc;
