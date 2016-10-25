@@ -60,7 +60,7 @@ return;
 function res = objective(x,dx,t,param) %**********************************
 
 % L2-norm part
-w=bsxfun(@times,param.SGW.^2,(param.E*(x+t*dx)-param.y));
+w=bsxfun(@times,param.SGW,(param.E*(x+t*dx)-param.y));
 L2Obj=w(:)'*w(:);
 
 if param.TVWeight
@@ -75,7 +75,7 @@ res=L2Obj+param.TVWeight*TVObj;
 function g = grad(x,param)%***********************************************
 
 % L2-norm part
-L2Grad = 2.*(param.E'*(bsxfun(@times,(param.E*x-param.y),param.SGW)));
+L2Grad = 2.*(param.E'*(bsxfun(@times,(param.E*x-param.y),param.SGW.^2)));
 
 if param.TVWeight
     w = param.TV*x;
