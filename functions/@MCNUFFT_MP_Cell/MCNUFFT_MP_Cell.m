@@ -23,12 +23,15 @@ end
 res.adjoint = 0;
 res.imSize = size(b1(:,:,1,1));
 res.imSize2 = [size(k{1,1},1),size(k{1,1},1)];
-res.dataSize = [size(k{1,1},1),size(k{1,1},2),size(k,1),size(k,2)]; 
+%res.dataSize = [size(k{1,1},1),size(k{1,1},2),size(k,1),size(k,2)]; 
 aux = cell(size(w));
+res.dataSize = cell(size(w));
 for resp=1:size(w,1)
     for card=1:size(w,2)
         mat = w{resp,card};
         aux{resp,card} = sqrt(mat);
+        s = size(k{resp,card});
+        res.dataSize{resp,card} = s;
     end
 end
 res.w = aux;

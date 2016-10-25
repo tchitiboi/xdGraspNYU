@@ -18,11 +18,17 @@ if a.adjoint,
     %ress=ress.*size(a.w,1)*pi/2/size(a.w,2);
 else
     % Cartesian image to multicoil non-Cartesian k-space
-    for tt=1:size(bb,4)
-        for resp=1:size(bb,3),
-            for ch=1:size(a.b1,3),
-                res=bb(:,:,resp,tt).*a.b1(:,:,ch);
-                ress(:,:,ch,resp,tt) = reshape(nufft(res,a.st{resp,tt})/sqrt(prod(a.imSize2)),a.dataSize(1),a.dataSize(2)).*a.w(:,:,resp,tt);
+    ress = cell(size(a.w));
+    for card=1:size(bb,4)
+        for resp=1:size(bb,3)
+            aux = a.w{resp,card};
+            s = a.dataSize{resp,card};
+            %c = bb{resp,card};
+            for ch=1:size(a.b1,3)
+                res=bb(:,:,resp,card).*a.b1(:,:,ch);
+                ress1(:,:,ch) = reshape(nufft(res,a.st{resp,card})/sqrt(prod(a.imSize2)),s(1,1),s(1,2)).*aux;
+                ress{resp,card} = ress1;
+                clear res ress1
             end
         end
     end

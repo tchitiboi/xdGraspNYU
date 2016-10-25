@@ -18,7 +18,7 @@ end
 %recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
 
 border_img = squeeze(recon_Res(:,:,1));
-border_size = 50;
+border_size = 40;
 for x = 1:size(recon_Res,1)
   for y = 1:size(recon_Res,2)
       if (x < border_size || x > size(recon_Res,1)-border_size) ...
