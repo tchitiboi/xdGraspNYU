@@ -46,26 +46,53 @@ tres=para.ntres/nResp;
 if (tres>=1)  
     for resp = 1:nResp
         for card = 1:nCard
-            list_index = find(Res_Signal_Under(:,card) == resp)
+            r = resp;
+            [ind_a, ind_b] = find(Res_Signal_Under1(:,:,card) == r);
             
-            tmp1=squeeze(kdata_Under1(:,:,:,list_index,card));
-            tmp2=squeeze(Traj_Under1(:,:,list_index,card));
-            tmp3=squeeze(DensityComp_Under1(:,:,list_index,card));
+            while (length(ind_a)==0 && r>0)
+                r = r-1;
+                [ind_a, ind_b] = find(Res_Signal_Under1(:,:,card) == r);
+            end            
+                
+            for i = 1:length(ind_a)
+                tmp1(:,i,:)=squeeze(kdata_Under1(:,ind_a(i),:,ind_b(i),card));
+                tmp2(:,i)=squeeze(Traj_Under1(:,ind_a(i),ind_b(i),card));
+                tmp3(:,i)=squeeze(DensityComp_Under1(:,ind_a(i),ind_b(i),card));                
+            end
+            
+            %[resp, card, size(ind_a,1)]
+            clear ind_a ind_b
+                       
+            kdata_Under2{resp, card}=tmp1;
+            Traj_Under2{resp, card}=tmp2;
+            DensityComp_Under2{resp, card}=tmp3;
+            
+            clear tmp1 tmp2 tmp3
 
 %             tmp1=kdata_Under1(:,:,:,(resp-1)*tres+1:resp*tres,card);
 %             tmp2=Traj_Under1(:,:,(resp-1)*tres+1:resp*tres,card);
 %             tmp3=DensityComp_Under1(:,:,(resp-1)*tres+1:resp*tres,card);
         
-            tmp1=permute(tmp1,[1,2,4,3]);
-
-            kdata_Under2{resp, card}=reshape(tmp1,[nx,size(kdata_Under1,2)*size(tmp1,3),nc]);
-            Traj_Under2{resp, card}=reshape(tmp2,[nx,size(kdata_Under1,2)*size(tmp2,3)]);
-            DensityComp_Under2{resp, card}=reshape(tmp3,[nx,size(kdata_Under1,2)*size(tmp3,3)]);
+%             tmp1=permute(tmp1,[1,2,4,3]);
+% 
+%             kdata_Under2{resp, card}=reshape(tmp1,[nx,size(kdata_Under1,2)*size(tmp1,3),nc]);
+%             Traj_Under2{resp, card}=reshape(tmp2,[nx,size(kdata_Under1,2)*size(tmp2,3)]);
+%             DensityComp_Under2{resp, card}=reshape(tmp3,[nx,size(kdata_Under1,2)*size(tmp3,3)]);
         end       
     end
 else
     disp('not enough spokes per image for this number of cardiac phases')
 end
+
+
+% % headcount
+% sm =0;
+%   for resp = 1:nResp
+%         for card = 1:nCard
+%             sm = sm + size(tmp1,2);
+%         end
+%   end
+%   
 
 
 end%of function

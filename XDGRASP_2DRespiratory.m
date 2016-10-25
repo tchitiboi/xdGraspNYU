@@ -26,7 +26,7 @@ addpath(genpath('imageAnalysis'))
 %     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 % end
 %Load the files
-cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\lowEF\Pt75')
+cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\lowEF\Pt77')
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -135,9 +135,9 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 Perr = 9; %Perr=para.ntres;
 %Perc=para.CardiacPhase;
 Perc = 9;
-%Res_Signal_Bins = getRespBins(Res_Signal, Perr);
-%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins,nline,para, Perr, Perc);
-[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
+Res_Signal_Bins = getRespBins(Res_Signal, Perr);
+[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins,nline,para, Perr, Perc);
+%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
@@ -147,7 +147,10 @@ Perc = 9;
 % if(~bKwicInit)
     %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
     % param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
-    param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
+    
+    param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);
+    %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
+    
     %param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
     
     param.y=kdata_Under;
@@ -178,11 +181,13 @@ clear Gating_Signal Gating_Signal_FFT Res_Signal Res_Signal_Under
 clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
 clear nline ntviews nx N ans
 
+
+
 %%%
 clc
 tic
 for n=1:4
-    recon_GRASP = CSL1NlCg(recon_GRASP,param);
+    recon_GRASP = CSL1NlCg_Cell(recon_GRASP,param);
 end
 time=toc;
 time=time/60
@@ -195,7 +200,7 @@ recon_GRASP=abs(single(recon_GRASP));
 %  end
 % end
 
-figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
-figure,imagescn(abs(ipermute(recon_GRASP, [1 2 4 3])),[0 .003],[],[],3)
+figure,imagescn(abs(recon_GRASP),[0 .01],[],[],3)
+figure,imagescn(abs(ipermute(recon_GRASP, [1 2 4 3])),[0 .01],[],[],3)
 
 % figure,imagescn(abs(recon_GRASP_TM),[0 .003],[],[],3)
