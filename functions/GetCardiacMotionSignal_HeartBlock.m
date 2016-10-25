@@ -27,7 +27,7 @@ end
 
 [nx,ny,nt]=size(recon_Car);
 
-para.LF_H=0.8;para.HF_H=1.5;%%% initial heart rate range
+para.LF_H=0.9;para.HF_H=1.7;%%% initial heart rate range
 [HF_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
 
 time_series = abs(recon_Car);

@@ -1,7 +1,7 @@
 function mask = tmc_localizeHeart(imgs, HF_Index)
 
 for t = 1:size(imgs,3)
-  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),2);
+  smooth_imgs(:,:,t) = imgaussfilt(imgs(:,:,t),1);
 end
 
 %smooth_imgs = medfilt1(smooth_imgs, 3, [], 3);
@@ -30,8 +30,8 @@ map = medfilt2(map);
 im_map = mat2gray(map, [0 max(max(map))]);
 
 [counts, x] = imhist(im_map,256);
-thresh = otsuthresh(counts)
-thresh = thresh * 3/4.0
+thresh = otsuthresh(counts);
+thresh = thresh * 0.75;
 %thresh = graythresh(counts)
 
 % threshold and dilate
@@ -42,16 +42,12 @@ se = strel('octagon',6);
 bw_dilated = imclose(bw_dilated,se);
 bw_dilated = imfill(bw_dilated, 'holes');
 
-% get largest cc
-[labeledImage, numberOfBlobs] = bwlabel(bw_dilated);
-largestCC = extractNLargestCC(bw_dilated, 1);
-
-border_img = largestCC;
-border_size = 30;
-for x = 1:size(largestCC,1)
-  for y = 1:size(largestCC,2)
-      if (x < border_size || x > size(largestCC,1)-border_size) ...
-         || (y < border_size || y > size(largestCC,1)-border_size)
+border_img = bw_dilated;
+border_size = 40;
+for x = 1:size(bw_dilated,1)
+  for y = 1:size(bw_dilated,2)
+      if (x < border_size || x > size(bw_dilated,1)-border_size) ...
+         || (y < border_size || y > size(bw_dilated,1)-border_size)
           border_img(x,y) = 0;
       else
           border_img(x,y) = 1;  
@@ -59,13 +55,17 @@ for x = 1:size(largestCC,1)
   end
 end
 
-largestCC = largestCC.*border_img; 
+% get largest cc
+[labeledImage, numberOfBlobs] = bwlabel(bw_dilated.*border_img);
+largestCC = extractNLargestCC(bw_dilated.*border_img, 1);
+
+%largestCC = largestCC; 
 se = strel('octagon',9);
 closed_largestCC = imclose(largestCC,se);
 closed_largestCC = imdilate(closed_largestCC,se);
 closed_largestCC = imclose(closed_largestCC,se);
 closed_largestCC = imopen(closed_largestCC,se);
-%se = strel('octagon',3);
+se = strel('octagon',6);
 closed_largestCC = imerode(closed_largestCC,se);
 closed_largestCC = imfill(closed_largestCC, 'holes');
 

@@ -3,18 +3,28 @@ clc
 
 %Prepare for DICOM template
 %You need to change the path to be the one you store the templates.
-PathName1='G:/NYU/Demo_DICOMGeneration/DICOM_Template_20Phase/'
+PathName1='C:\Users\chitit01\nyu\Demo_DICOMGeneration\DICOM_Template_20Phase/'
 
 load FileName.mat
 
+pathData = 'D:\cardioDataNYU\xdGraspRadial\testDataSeptum\lowEF\Pt75'
+
 %Load the matlab images
-cd ('C:/Users/tchitiboi/Desktop/testDataSeptum/Pt51')
+cd (pathData)
 load recon_GRASP_resp.mat
 data= recon_GRASP/max(recon_GRASP(:));
 [nx,ny,ntres,ntcar]=size(recon_GRASP)
 
+newSubFolder = sprintf('%s/%s', pathData, 'dicom');
+
+if ~exist(newSubFolder, 'dir')
+  mkdir(newSubFolder);
+end
+
 %Go to the fold where you want to save your images
-cd('C:/Users/tchitiboi/Desktop/testDataSeptum/Pt51/dicom1')
+cd(newSubFolder);
+%remove old results
+system('del /q *');
 
 %save the images
 Name='Cardiac';
