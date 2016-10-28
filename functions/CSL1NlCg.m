@@ -13,6 +13,42 @@ alpha = 0.01;
 beta = 0.6;
 t0 = 1 ; 
 k = 0;
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Gradient checks
+if (param.checkgradients)
+    % Preparation
+    fprintf('\n Performing gradient check \n')
+    for ii = 1:10
+        
+        dx = rand(size(x));
+        t = 1e-10;
+        
+        % Calculate variables
+        res_F_plus  = objective(x,dx,t,param); 
+        res_F_minus = objective(x,dx,-t,param); 
+        
+        J_fd        = (res_F_plus - res_F_minus)/(2*t); % central
+        
+        g           = grad(x,param);
+        J_an        = real(g(:)'*dx(:)); 
+        
+        ratio       = J_fd/J_an;
+        
+        disp([' Finite difference = ', num2str(J_fd), ', Analytical = ', num2str(J_an), ', ratio = ', num2str(ratio)]);
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
 % compute g0  = grad(f(x))
 g0 = grad(x,param);
 dx = -g0;
