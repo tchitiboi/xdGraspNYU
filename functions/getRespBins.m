@@ -30,13 +30,18 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
         end        
     end
         
-    [idx,c]=kmeans(Res_Signal(Res_Signal_no_outliers),nbins);
-    index = 1:(nbins);
-    m = [c,index.'];
-    m = sortrows(m,1);
+%     [idx,c]=kmeans(Res_Signal(Res_Signal_no_outliers),nbins);
+%     index = 1:(nbins);
+%     m = [c,index.'];
+%     m = sortrows(m,1);
+    
+    guess = zeros(size(Res_Signal(Res_Signal_no_outliers))); 
+    for i=1:length(guess)
+        guess(i) = floor((Res_Signal(Res_Signal_no_outliers(i))-minRes)*nbins/(maxRes+0.00001-minRes)+1);
+    end
     
     gmfit = fitgmdist(Res_Signal(Res_Signal_no_outliers), nbins, 'CovarianceType', ...
-        'diagonal', 'SharedCovariance', false, 'Replicates', 50, 'Start', 'plus');
+        'diagonal', 'SharedCovariance', false, 'Replicates', 1, 'Start', guess);
     idx = cluster(gmfit,Res_Signal(Res_Signal_no_outliers));
     P = posterior(gmfit,Res_Signal(Res_Signal_no_outliers));
     c = gmfit.mu;
@@ -73,11 +78,11 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
 %     end
 %     
     
-%     kmHisto = zeros(nbins,1);
-%     for bin = 1:nbins
-%        l = find(Res_Signal_Bins==bin);
-%        kmHisto(bin)=length(l);
-%     end
+    kmHisto = zeros(nbins,1);
+    for bin = 1:nbins
+       l = find(Res_Signal_Bins==bin);
+       kmHisto(bin)=length(l);
+    end
 
 end
 
