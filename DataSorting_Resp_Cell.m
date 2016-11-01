@@ -45,6 +45,7 @@ end
 kdata_Under2 = cell(nResp,nCard);
 Traj_Under2 = cell(nResp,nCard);
 DensityComp_Under2 = cell(nResp,nCard);
+minSpokes = 25;
 
 tres=para.ntres/nResp;
 if (tres>=1)  
@@ -55,20 +56,38 @@ if (tres>=1)
             ind_a_extra = [];
             ind_b_extra = [];
             
-            if (length(ind_a)<30)   
-                missing = 30 - length(ind_a);
-                [ind_a1, ind_b1] = find(Res_Signal_Under1(:,:,card) == r-1);
-                [ind_a2, ind_b2] = find(Res_Signal_Under1(:,:,card) == r+1);
+            if (length(ind_a)<minSpokes)   
+                missing = minSpokes - length(ind_a);
+                if (r>1)
+                  [ind_a1, ind_b1] = find(Res_Signal_Under1(:,:,card) == r-1);
+                else
+                  [ind_a1, ind_b1] = find(Res_Signal_Under1(:,:,card) == nResp);
+                end
+                
+                if (r<nResp)
+                  [ind_a2, ind_b2] = find(Res_Signal_Under1(:,:,card) == r+1);
+                else
+                  [ind_a2, ind_b2] = find(Res_Signal_Under1(:,:,card) == 1);
+                end
+                
                 ind_a3 = [ind_a1;ind_a2];
                 ind_b3 = [ind_b1;ind_b2];
                 p = zeros(length(ind_a3),2);
                 for i = 1:length(ind_a1)
-                  p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,r-1);
-                  p(i,2) = i;
+                    if (r>1)
+                        p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,r-1);
+                    else
+                        p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,nResp);
+                    end                     
+                    p(i,2) = i;
                 end
                 for i = length(ind_a1)+1:length(ind_a3)
-                  p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,r+1);
-                  p(i,2) = i;
+                    if (r<nResp)
+                        p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,r+1);
+                    else
+                        p(i,1) = Res_Signal_P_Under1(ind_a3(i),ind_b3(i),card,1);
+                    end
+                    p(i,2) = i;
                 end
                 p = sortrows(p,1);
                 ind_a_extra = ind_a3(p(1:missing,2));
