@@ -26,7 +26,7 @@ addpath(genpath('imageAnalysis'))
 %     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 % end
 %Load the files
-cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\lowEF\Pt77')
+cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\RV\Pt21')
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -60,10 +60,9 @@ para.LF_R=0.1;para.HF_R=0.4;%%% initial respiration rate range
 
 %%%Calculate coil sensitivities
 kdata=kdata.*repmat(sqrt(DensityComp),[1,1,nc]);
-
 ref=ref(:,:,coil);
 [~,b1]=adapt_array_2d(squeeze(ref));
-b1=double(b1/max(abs(b1(:))));clear ref
+b1=double(b1/max(abs(b1(:))));%clear ref
 
 %%%%%%%%%%%%%
 % ResSort=0;
@@ -119,10 +118,8 @@ end
 
 %Get respiratory motion signal
 %[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
-[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,1);
+[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,0);
 Res_Signal=Res_Signal./max(Res_Signal(:));
-%Res_Signal= repmat(max(Res_Signal(:)), [length(Res_Signal),1]) - Res_Signal;
-
 
 %Get cardiac motion signal
 %[Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para);
@@ -135,8 +132,8 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 Perr = 9; %Perr=para.ntres;
 %Perc=para.CardiacPhase;
 Perc = 9;
-Res_Signal_Bins = getRespBins(Res_Signal, Perr);
-[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins,nline,para, Perr, Perc);
+[Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, Perr);
+[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
 %[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
@@ -152,11 +149,11 @@ Res_Signal_Bins = getRespBins(Res_Signal, Perr);
     %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
     
     %param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
-    
+
     param.y=kdata_Under;
     % param.Res_Signal=Res_Signal_Under;
     recon_GRASP=param.E'*param.y;
-% else
+    % else
 %     recon_GRASP_kwic=initializeWithKwic(kdata_Under,Traj_Under,DensityComp_Under,b1,0);
 % end
 
