@@ -30,6 +30,18 @@ for x = 1:size(recon_Res,1)
   end
 end
 
+% mask = max(recon_Res,[],3);
+% im_map = mat2gray(mask, [0 max(max(mask))]);
+% 
+% [counts, x] = imhist(im_map,256);
+% thresh = otsuthresh(counts);
+% thresh = 1.25*thresh;
+% bw = im2bw(im_map, thresh);
+% se = strel('octagon',6);
+% bw_dilated = imdilate(bw,se);
+% bw_dilated = 1 - bw_dilated;
+
+%recon_Res = recon_Res .* repmat(bw_dilated,[1 1 size(recon_Res,3)]);
 recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
 
 TR=para.TR*2;
@@ -51,7 +63,7 @@ for ii=1:3:nx-NN
         bin_tmp = tmp;
         bin_tmp(bin_tmp>0.0000001) = 1;
         s = sum(sum(sum(bin_tmp,1),2),3);
-        if s/(NN*NN*nt) > 0.9
+        if s/(NN*NN*nt) > 0.7
             k=k+1;
             Signal(:,k)=squeeze(sum(sum(tmp,1),2));
             %Signal(:,k)= Signal(:,k)/(NN*NN);
@@ -106,6 +118,8 @@ Res_Signal_Smooth = smooth(Res_Signal_Long, span, 'lowess');
 
 avg_valley = abs(median(valley_values));
 max_peak = abs(max(peak_values));
+
+Res_Signal_Long = Res_Signal_Long - min(Res_Signal_Long);
 
 if ResSort  
   Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index);    
