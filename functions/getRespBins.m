@@ -1,4 +1,4 @@
-function Res_Signal_Bins = getRespBins(Res_Signal, nbins)
+function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
 %GETRESPBINS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -36,22 +36,27 @@ function Res_Signal_Bins = getRespBins(Res_Signal, nbins)
     m = sortrows(m,1);
     
     gmfit = fitgmdist(Res_Signal(Res_Signal_no_outliers), nbins, 'CovarianceType', ...
-        'diagonal', 'SharedCovariance', false, 'Replicates', 50);
+        'diagonal', 'SharedCovariance', false, 'Replicates', 50, 'Start', 'plus');
     idx = cluster(gmfit,Res_Signal(Res_Signal_no_outliers));
     P = posterior(gmfit,Res_Signal(Res_Signal_no_outliers));
     c = gmfit.mu;
     index = 1:(nbins);
     m = [c,index.'];
     m = sortrows(m,1);
+    P1 = P;
     
+    for i = 1:nbins;
+        P1(:,i) = P(:,find(m(:,2)==i));
+    end     
     
     Res_Signal_Bins = zeros(size(Res_Signal));
+    Res_Signal_P = zeros([size(Res_Signal,1),nbins]);
     
     for r = 1:size(idx,1)
         i = idx(r);
-        p = P(r);
+        p = P1(r);
         Res_Signal_Bins(Res_Signal_no_outliers(r)) = find(m(:,2)==i);
-        %Res_Signal_P(Res_Signal_no_outliers(r))=
+        Res_Signal_P(Res_Signal_no_outliers(r),:)=P1(r,:);
     end
     
     Res_Signal_Bins = medfilt1(Res_Signal_Bins,7);
@@ -68,11 +73,11 @@ function Res_Signal_Bins = getRespBins(Res_Signal, nbins)
 %     end
 %     
     
-    kmHisto = zeros(9,1);
-    for bin = 1:nbins
-       l = find(Res_Signal_Bins==bin);
-       kmHisto(bin)=length(l);
-    end
+%     kmHisto = zeros(nbins,1);
+%     for bin = 1:nbins
+%        l = find(Res_Signal_Bins==bin);
+%        kmHisto(bin)=length(l);
+%     end
 
 end
 
