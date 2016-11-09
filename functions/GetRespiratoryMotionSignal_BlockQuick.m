@@ -15,10 +15,10 @@ for t = 1:size(recon_Res,3)
 end
 
 [nx,ny,nt]=size(recon_Res);
-%recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
+recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
 
 border_img = squeeze(recon_Res(:,:,1));
-border_size = 40;
+border_size = 60;
 for x = 1:size(recon_Res,1)
   for y = 1:size(recon_Res,2)
       if (x < border_size || x > size(recon_Res,1)-border_size) ...
@@ -30,17 +30,19 @@ for x = 1:size(recon_Res,1)
   end
 end
 
-% mask = max(recon_Res,[],3);
-% im_map = mat2gray(mask, [0 max(max(mask))]);
-% 
-% [counts, x] = imhist(im_map,256);
-% thresh = otsuthresh(counts);
-% thresh = 1.25*thresh;
-% bw = im2bw(im_map, thresh);
-% se = strel('octagon',6);
-% bw_dilated = imdilate(bw,se);
-% bw_dilated = 1 - bw_dilated;
+mask = max(recon_Res,[],3);
+im_map = mat2gray(mask, [0 max(max(mask))]);
 
+[counts, x] = imhist(im_map,256);
+thresh = otsuthresh(counts);
+%thresh = 0.75*thresh;
+bw = im2bw(im_map, thresh);
+se = strel('octagon',6);
+bw_dilated = imdilate(bw,se);
+bw_dilated = 1 - bw_dilated;
+
+
+%border_img = border_img .* bw_dilated;
 %recon_Res = recon_Res .* repmat(bw_dilated,[1 1 size(recon_Res,3)]);
 recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
 
@@ -63,7 +65,7 @@ for ii=1:3:nx-NN
         bin_tmp = tmp;
         bin_tmp(bin_tmp>0.0000001) = 1;
         s = sum(sum(sum(bin_tmp,1),2),3);
-        if s/(NN*NN*nt) > 0.7
+        if s/(NN*NN*nt) > 0.9
             k=k+1;
             Signal(:,k)=squeeze(sum(sum(tmp,1),2));
             %Signal(:,k)= Signal(:,k)/(NN*NN);
