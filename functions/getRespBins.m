@@ -11,13 +11,13 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     
     H = histogram(Res_Signal,100);
     minBin = 1;
-    while H.Values(minBin)<10
+    while H.Values(minBin)<4
       minBin = minBin+1;  
     end
     minRes = absmin + (minBin-1)*(absmax-absmin)/100;
     
     maxBin = 100;
-    while H.Values(maxBin)<10
+    while H.Values(maxBin)<4
       maxBin = maxBin-1;  
     end
     maxRes = absmin + maxBin*(absmax-absmin)/100;
