@@ -11,13 +11,13 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     
     H = histogram(Res_Signal,100);
     minBin = 1;
-    while H.Values(minBin)<4
+    while H.Values(minBin)<3
       minBin = minBin+1;  
     end
     minRes = absmin + (minBin-1)*(absmax-absmin)/100;
     
     maxBin = 100;
-    while H.Values(maxBin)<4
+    while H.Values(maxBin)<3
       maxBin = maxBin-1;  
     end
     maxRes = absmin + maxBin*(absmax-absmin)/100;
@@ -39,6 +39,21 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     for i=1:length(guess)
         guess(i) = floor((Res_Signal(Res_Signal_no_outliers(i))-minRes)*nbins/(maxRes+0.00001-minRes)+1);
     end
+    
+    for i=1:nbins
+        step = 0; 
+        while length((find(guess==i)))<3
+            step = step + 0.001;
+            for j=1:length(guess)
+                bin = floor((Res_Signal(Res_Signal_no_outliers(j))-minRes)*nbins/(maxRes+0.00001-minRes)+1);
+                if ((Res_Signal(Res_Signal_no_outliers(j))-minRes) < i*(maxRes-minRes)/nbins+step &&...
+                        (Res_Signal(Res_Signal_no_outliers(j))-minRes) > (i-1)*(maxRes-minRes)/nbins-step)
+                  guess(j) = i;
+                end
+            end
+        end
+    end
+    
     
     gmfit = fitgmdist(Res_Signal(Res_Signal_no_outliers), nbins, 'CovarianceType', ...
         'diagonal', 'SharedCovariance', false, 'Replicates', 1, 'Start', guess);
@@ -65,24 +80,13 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     end
     
     Res_Signal_Bins = medfilt1(Res_Signal_Bins,7);
+ 
     
-%     binsz = (maxRes-minRes)/nbins;
-%     Res_Signal_Bins = zeros(size(Res_Signal));
-% 
-%     for r = 1:size(Res_Signal,1)
-%         if (Res_Signal(r) < minRes || Res_Signal(r) > maxRes)
-%              Res_Signal_Bins(r) = 0;
-%         else
-%              Res_Signal_Bins(r) = 1 + floor((Res_Signal(r)-minRes)/binsz); 
-%         end
+%     kmHisto = zeros(nbins,1);
+%     for bin = 1:nbins
+%        l = find(Res_Signal_Bins==bin);
+%        kmHisto(bin)=length(l);
 %     end
-%     
-    
-    kmHisto = zeros(nbins,1);
-    for bin = 1:nbins
-       l = find(Res_Signal_Bins==bin);
-       kmHisto(bin)=length(l);
-    end
 
 end
 
