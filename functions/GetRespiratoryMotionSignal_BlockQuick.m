@@ -57,7 +57,7 @@ FR_Index=find(F_X<para.HF_R & F_X>para.LF_R);
 FC_Index=find(F_X<para.HF_H & F_X>para.LF_H);
 
 [nx,ny,nt]=size(recon_Res);
-NN=floor(nx/16);k=0;
+NN=floor(nx/12);k=0;
 for ii=1:3:nx-NN
     for jj=1:3:ny-NN
         %tmp=gpuArray(abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:)));
