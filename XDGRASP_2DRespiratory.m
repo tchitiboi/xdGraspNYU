@@ -26,7 +26,7 @@ addpath(genpath('imageAnalysis'))
 %     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 % end
 %Load the files
-cd ('D:\cardioDataNYU\xdGraspRadial\testDataSeptum\RV\Pt21')
+cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt9')
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -118,7 +118,7 @@ end
 
 %Get respiratory motion signal
 %[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
-[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,0);
+[Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,1);
 Res_Signal=Res_Signal./max(Res_Signal(:));
 
 %Get cardiac motion signal
@@ -133,7 +133,7 @@ Perr = 9; %Perr=para.ntres;
 %Perc=para.CardiacPhase;
 Perc = 9;
 [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, Perr);
-[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
+[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
 %[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
 
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
@@ -172,6 +172,8 @@ param.TV = TV_Temp3D;% TV along Cardiac dimension
 param.W  = TV_Temp2DRes;% TV along Respiratory dimension
 param.nite = 6;param.display = 1;
 
+param.SGW = Res_Signal_P_Under;
+
 
 clear para Cardiac_Signal Cut DensityComp DensityComp_Under
 clear Gating_Signal Gating_Signal_FFT Res_Signal Res_Signal_Under
@@ -183,21 +185,12 @@ clear nline ntviews nx N ans
 %%%
 clc
 tic
-for n=1:4
+for n=1:3
     recon_GRASP = CSL1NlCg_Cell(recon_GRASP,param);
 end
 time=toc;
 time=time/60
 recon_GRASP=abs(single(recon_GRASP));
 
-% [nx,ny,nt]=size(recon_GRASP);
-% for ii=1:nx
-%   for jj=1:ny
-%     recon_GRASP_TM(ii,jj,:)=medfilt1(recon_GRASP(ii,jj,:),5);
-%  end
-% end
-
 figure,imagescn(abs(recon_GRASP),[0 .01],[],[],3)
 figure,imagescn(abs(ipermute(recon_GRASP, [1 2 4 3])),[0 .01],[],[],3)
-
-% figure,imagescn(abs(recon_GRASP_TM),[0 .003],[],[],3)
