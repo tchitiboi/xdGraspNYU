@@ -1,21 +1,18 @@
-function [Res_Signal1,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,ResSort,recon_Res, sw);
+function [Res_Signal1,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,ResSort,recon_Car, sw);
 
-%dpad = floor((size(recon_Res,1) - size(maskHeart,1))/2);
-%mask = padarray(maskHeart,[dpad, dpad],0,'both');
-%if size(recon_Res,1) - size(mask,1) > 0
-%  mask = padarray(mask,[1, 1],0,'pre');
-%end
-% se = strel('octagon',3);
-% mask = imdilate(maskHeart,se);
+recon_Res = zeros(size(recon_Car,1), size(recon_Car,2), size(recon_Car,3)/2);
 
-recon_Res = medfilt1(abs(recon_Res),5,[],3);
-
-for t = 1:size(recon_Res,3)
-  recon_Res(:,:,t) = imgaussfilt(abs(recon_Res(:,:,t)),1.5);
+for t = 2:(size(recon_Res,3)-1)
+  recon_Res(:,:,t) = (0.5*recon_Car(:,:,2*t-2)+recon_Car(:,:,2*t-1)+recon_Car(:,:,2*t)+...
+      0.5*recon_Car(:,:,2*t+1))/3;
 end
 
+recon_Res(:,:,1) = (recon_Car(:,:,1)+recon_Car(:,:,2)+0.5*recon_Car(:,:,3))/2.5;
+recon_Res(:,:,size(recon_Res,3)) = (0.5*recon_Car(:,:,size(recon_Res,3)-2)+...
+    recon_Car(:,:,size(recon_Res,3)-1)+recon_Car(:,:,size(recon_Res,3)))/2.5;
+
 [nx,ny,nt]=size(recon_Res);
-recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
+%recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
 
 border_img = squeeze(recon_Res(:,:,1));
 border_size = 60;
@@ -30,7 +27,7 @@ for x = 1:size(recon_Res,1)
   end
 end
 
-mask = max(recon_Res,[],3);
+mask = max(real(recon_Res),[],3);
 im_map = mat2gray(mask, [0 max(max(mask))]);
 
 [counts, x] = imhist(im_map,256);
@@ -44,7 +41,7 @@ bw_dilated = 1 - bw_dilated;
 
 %border_img = border_img .* bw_dilated;
 %recon_Res = recon_Res .* repmat(bw_dilated,[1 1 size(recon_Res,3)]);
-recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
+%recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
 
 TR=para.TR*2;
 time = TR:TR:nt*TR;
@@ -82,9 +79,9 @@ Res_Peak=squeeze(Signal_FFT(FR_Index,:));
 Car_Peak=squeeze(Signal_FFT(FC_Index,:));
 
 ratio_Peak = max(Res_Peak)./max(Car_Peak);
-%[m,n]=find(Res_Peak==max(Res_Peak(:)));
-n = find(ratio_Peak == max(ratio_Peak));
-m = find(Res_Peak(:,n) == max(Res_Peak(:,n)));
+[m,n]=find(Res_Peak==max(Res_Peak(:)));
+%n = find(ratio_Peak == max(ratio_Peak));
+%m = find(Res_Peak(:,n) == max(Res_Peak(:,n)));
 
 disp(sprintf('Peak requency: %f', Res_Peak(m,n)));
 
@@ -129,29 +126,3 @@ if ResSort
 else
   Res_Signal1 = Res_Signal_Long;
 end
-
-
-
-% if ResSort
-%     for ii=1:length(Res_Signal)-1
-%         if Res_Signal(ii)<Res_Signal(ii+1)
-%             Res_Signal2(ii)=Res_Signal(ii)*-1;
-%         else
-%             Res_Signal2(ii)=Res_Signal(ii);
-%         end
-%     end
-%     if Res_Signal(end-1)<Res_Signal(end)
-%         Res_Signal2(length(Res_Signal))=Res_Signal(end)*-1;
-%     else
-%         Res_Signal2(length(Res_Signal))=Res_Signal(end);
-%     end
-% end
-
-
-%Res_Signal_new= smooth(Res_Signal,5);
-
-% Res_Signal_new=zeros(nt*4,1);
-% Res_Signal_new(1:4:end)=Res_Signal;
-% Res_Signal_new(2:4:end)=Res_Signal;
-% Res_Signal_new(3:4:end)=Res_Signal;
-% Res_Signal_new(4:4:end)=Res_Signal;
