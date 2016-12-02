@@ -94,9 +94,10 @@ w = cell(size(aux));
 L2Obj=0;
 for resp = 1:size(aux,1)
     for card = 1:size(aux,2)
-       p = param.SGW{resp,card};
+       p(1,:,1) = param.SGW{resp,card};
        w{resp,card} = bsxfun(@times,p,aux{resp,card} - param.y{resp,card});
        L2Obj = L2Obj + w{resp,card}(:)'*w{resp,card}(:);
+       clear p
     end
 end
 %L2Obj=w(:)'*w(:);
@@ -125,8 +126,9 @@ aux = param.E*x;
 aux1 = cell(size(aux));
 for resp = 1:size(aux,1)
     for card = 1:size(aux,2)
-        p = param.SGW{resp,card}.^2;
+        p(1,:,1) = param.SGW{resp,card}.^2;
         aux1{resp,card} = bsxfun(@times,aux{resp,card}-param.y{resp,card},p);
+        clear p
     end
 end
 L2Grad = 2.*(param.E'*aux1);
