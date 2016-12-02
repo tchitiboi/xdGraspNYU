@@ -26,7 +26,7 @@ addpath(genpath('imageAnalysis'))
 %     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 % end
 %Load the files
-cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt9')
+cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt26')
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -121,12 +121,7 @@ end
 [Res_Signal,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,1);
 Res_Signal=Res_Signal./max(Res_Signal(:));
 
-%Get cardiac motion signal
-%[Cardiac_Signal,para]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para);
-%Cardiac_Signal=Cardiac_Signal./max(Cardiac_Signal(:));
-
 para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
-
 
 % % %code for 9 cardiac phases 9 resp phases
 Perr = 9; %Perr=para.ntres;
@@ -135,28 +130,44 @@ Perc = 9;
 [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, Perr);
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
 %[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
-
 % [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
 
-%[recon_kwic,kdata_Under,Traj_Under,DensityComp_Under,kwicmask,kwicdcf] = apply_kwic(kdata_Under(:,:,),Traj_Under,DensityComp_Under,b1,nline,0);
+% param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);    
 
-% bKwicInit=1;
-% if(~bKwicInit)
-    %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
-    % param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+tic
+param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);
+%param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
     
-    param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);
-    %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
-    
-    %param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);
+param.y=kdata_Under;
+recon_GRASP=param.E'*param.y;
+time=toc;
+time=time/60
 
-    param.y=kdata_Under;
-    % param.Res_Signal=Res_Signal_Under;
-    recon_GRASP=param.E'*param.y;
-    % else
-%     recon_GRASP_kwic=initializeWithKwic(kdata_Under,Traj_Under,DensityComp_Under,b1,0);
-% end
+%parameters
 
+tic
+recon_Res = zeros(size(recon_GRASP));
+osf=2;
+wg=7;
+sw=16;
+
+for i=1:Perr
+    for j=1:Perc
+        E = gpuNUFFT([real(col(Traj_Under{i,j})), imag(col(Traj_Under{i,j}))]',...
+            col(sqrt(DensityComp_Under{i,j})),osf,wg,sw,[nx,nx],b1,true);
+
+        kdata_Under_Res = reshape(kdata_Under{i,j},[size(kdata_Under{i,j},1)*size(kdata_Under{i,j},2),nc]);
+        recon_Res(:,:,i,j) = E'*double(kdata_Under_Res);
+        
+        clear kdata_Under_Res
+        
+        recon_Res(:,:,i,j) = recon_Res(:,:,i,j).*size(DensityComp_Under{i,j},1)*pi/2/size(DensityComp_Under{i,j},2);
+    end
+end
+time=toc;
+time=time/60
+
+figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 
 Weight1=0.01; %Cardiac
@@ -185,8 +196,8 @@ clear nline ntviews nx N ans
 %%%
 clc
 tic
-for n=1:3
-    recon_GRASP = CSL1NlCg_Cell(recon_GRASP,param);
+for n=1:4
+    recon_GRASP = CSL1NlCg_Cell_w(recon_GRASP,param);
 end
 time=toc;
 time=time/60
