@@ -48,7 +48,7 @@ kdata_Under2 = cell(nResp,nCard);
 Traj_Under2 = cell(nResp,nCard);
 DensityComp_Under2 = cell(nResp,nCard);
 p2 = cell(nResp,nCard);
-minSpokes = 50;
+minSpokes = 35;
 
 tres=para.ntres/nResp;
 if (tres>=1)  

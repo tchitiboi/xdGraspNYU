@@ -26,7 +26,8 @@ addpath(genpath('imageAnalysis'))
 %     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
 % end
 %Load the files
-cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt26')
+%cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt26')
+cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt9')
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -134,6 +135,16 @@ Perc = 9;
 
 % param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);    
 
+%%%%%%
+% b1 = ones(size(b1));
+% for i=1:size(Traj_Under,1)
+%     for j=1:size(Traj_Under,2)
+%         DensityComp_Under{i,j} = ones(size(DensityComp_Under{i,j}));
+%         kdata_Under{i,j} = ones(size(kdata_Under{i,j}));
+%     end
+% end
+%%%%%%
+
 tic
 param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);
 %param.E=MCNUFFT_MP(Traj_Under,DensityComp_Under,b1);
@@ -143,6 +154,13 @@ recon_GRASP=param.E'*param.y;
 time=toc;
 time=time/60
 
+%%%%%%
+% K = @(y) param.E*y; Kt = @(x) param.E'*x;
+% nrm_gpuNUFFT_1 = power_it_cell(K,Kt,[nx,nx,9,9],10)
+% recon_GRASP(:,:,1,1) = 1/nrm_gpuNUFFT_1 * recon_GRASP(:,:,1,1);
+%%%%%%
+
+
 %parameters
 
 tic
@@ -150,18 +168,34 @@ recon_Res = zeros(size(recon_GRASP));
 osf=2;
 wg=7;
 sw=16;
+param.E1 = cell(size(Traj_Under));
+param.nrm = cell(size(Traj_Under));
+param.nx = nx;
+param.b1_scalar = mean(mean(sqrt(sum(abs((b1)).^2,3))));
 
-for i=1:Perr
-    for j=1:Perc
-        E = gpuNUFFT([real(col(Traj_Under{i,j})), imag(col(Traj_Under{i,j}))]',...
+for i=1:size(Traj_Under,1)
+    for j=1:size(Traj_Under,2)
+        %'fun'
+        %tic
+        param.E1{i,j} = gpuNUFFT([real(col(Traj_Under{i,j})), imag(col(Traj_Under{i,j}))]',...
             col(sqrt(DensityComp_Under{i,j})),osf,wg,sw,[nx,nx],b1,true);
+        %toc 
+        %'nufft'
+        %tic
+        recon_Res(:,:,i,j) = param.E1{i,j}'*double(reshape(kdata_Under{i,j},[size(kdata_Under{i,j},1)*size(kdata_Under{i,j},2),nc]));
+        %toc
+        %'scale'
+        %tic
+        recon_Res(:,:,i,j) = recon_Res(:,:,i,j)./sum(abs((b1)).^2,3);
+        recon_Res(:,:,i,j) = recon_Res(:,:,i,j).*size(kdata_Under{i,j},1)*pi/2/size(kdata_Under{i,j},2);%*0.2081;
+       
+        %toc
+%         K = @(y) param.E1{i,j}*y*sqrt(size(kdata_Under{i,j},1)*pi/2/size(kdata_Under{i,j},2))/param.b1_scalar; 
+%         Kt = @(x) param.E1{i,j}'*x*sqrt(size(kdata_Under{i,j},1)*pi/2/size(kdata_Under{i,j},2))/param.b1_scalar;
+%         nrm_gpuNUFFT_1 = power_it(K,Kt,[nx,nx],10);
+%         param.nrm{i,j} = 1/nrm_gpuNUFFT_1;
+%         recon_Res(:,:,i,j) = 1/nrm_gpuNUFFT_1 * recon_Res(:,:,i,j);
 
-        kdata_Under_Res = reshape(kdata_Under{i,j},[size(kdata_Under{i,j},1)*size(kdata_Under{i,j},2),nc]);
-        recon_Res(:,:,i,j) = E'*double(kdata_Under_Res);
-        
-        clear kdata_Under_Res
-        
-        recon_Res(:,:,i,j) = recon_Res(:,:,i,j).*size(DensityComp_Under{i,j},1)*pi/2/size(DensityComp_Under{i,j},2);
     end
 end
 time=toc;
@@ -182,7 +216,7 @@ param.L1Weight=max(abs(recon_GRASP(:)))*Weight2;% Respiration
 param.TV = TV_Temp3D;% TV along Cardiac dimension 
 param.W  = TV_Temp2DRes;% TV along Respiratory dimension
 param.nite = 6;param.display = 1;
-
+param.b1 = b1;
 param.SGW = Res_Signal_P_Under;
 
 
@@ -196,12 +230,14 @@ clear nline ntviews nx N ans
 %%%
 clc
 tic
-for n=1:4
-    recon_GRASP = CSL1NlCg_Cell_w(recon_GRASP,param);
+for n=1:3
+    %recon_GRASP = CSL1NlCg_Cell_w(recon_GRASP,param);
+    recon_Res = CSL1NlCg_Cell_w_GPU(recon_Res,param);    
 end
 time=toc;
 time=time/60
 recon_GRASP=abs(single(recon_GRASP));
+recon_Res=abs(single(recon_Res));
 
-figure,imagescn(abs(recon_GRASP),[0 .01],[],[],3)
-figure,imagescn(abs(ipermute(recon_GRASP, [1 2 4 3])),[0 .01],[],[],3)
+figure,imagescn(abs(recon_Res),[0 .01],[],[],3)
+figure,imagescn(abs(ipermute(recon_Res, [1 2 4 3])),[0 .01],[],[],3)
