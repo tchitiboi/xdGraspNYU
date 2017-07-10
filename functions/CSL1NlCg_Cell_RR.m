@@ -1,4 +1,4 @@
-function [x] = CSL1NlCg_Cell_RR(x0,param)
+function [x] = CSL1NlCg_Cell_RR(x0,param,weightMat)
 % 
 % res = CSL1NlCg(param)
 
@@ -14,7 +14,7 @@ beta = 0.6;
 t0 = 1 ; 
 k = 0;
 % compute g0  = grad(f(x))
-g0 = grad(x,param);
+g0 = grad(x,param,weightMat);
 dx = -g0;
 
 %  %% Preparation
@@ -54,14 +54,14 @@ dx = -g0;
 while(1)
 
     % backtracking line-search
-	f0 = objective(x,dx,0,param);
+	f0 = objective(x,dx,0,param,weightMat);
 	t = t0;
-    f1 = objective(x,dx,t,param);
+    f1 = objective(x,dx,t,param,weightMat);
 	lsiter = 0;
 	while (f1 > f0 - alpha*t*abs(g0(:)'*dx(:)))^2 & (lsiter<maxlsiter)
 		lsiter = lsiter + 1;
 		t = t * beta;
-		f1 = objective(x,dx,t,param);
+		f1 = objective(x,dx,t,param,weightMat);
 	end
 
 	% control the number of line searches by adapting the initial step search
@@ -74,7 +74,7 @@ while(1)
     disp(sprintf('%d   , obj: %f, L-S: %d', k,f1,lsiter));
 
     %conjugate gradient calculation
-	g1 = grad(x,param);
+	g1 = grad(x,param,weightMat);
 	bk = g1(:)'*g1(:)/(g0(:)'*g0(:)+eps);
 	g0 = g1;
 	dx =  - g1 + bk* dx;
@@ -86,49 +86,47 @@ while(1)
 end
 return;
 
-function res = objective(x,dx,t,param) %**********************************
+function res = objective(x,dx,t,param, weightMat) %**********************************
 
 % L2-norm part
+%weightMat = zeros(size(WObj));
 aux = param.E*(x+t*dx);
 w = cell(size(aux));
 L2Obj=0;
 for card = 1:size(aux,1)
     for label = 1:size(aux,2)
        w{card, label} = aux{card, label} - param.y{card, label};
-       L2Obj = L2Obj + w{card, label}(:)'*w{card, label}(:);
+       L2Obj = L2Obj + w{card, label}(:)'*w{card, label}(:);      
     end
 end
 %L2Obj=w(:)'*w(:);
 clear aux w
 
+TVObj = 0;
 if param.TVWeight
     w = param.TV*(x+t*dx); 
-    TVObj = sum((w(:).*conj(w(:))+param.l1Smooth).^(1/2));
-else
-    TVObj = 0;
+    for card = 1:size(w,3)
+      for label = 1:size(w,4)
+        TVObj = TVObj+sum(sum((w(:,:,card,label).*conj(w(:,:,card,label))+param.l1Smooth)...
+            .^(1/2)*weightMat(card,label)));
+      end
+    end 
 end
 
+WObj = 0;
 if param.L1Weight
     w = param.W*(x+t*dx); 
-    WObj = sum((w(:).*conj(w(:))+param.l1Smooth).^(1/2));
-else
-    WObj = 0;
+    for card = 1:size(w,3)
+      for label = 1:size(w,4)
+         WObj = WObj +sum(sum((w(:,:,card,label).*conj(w(:,:,card,label))+param.l1Smooth)...
+             .^(1/2)*weightMat(card,label)));
+      end
+    end 
 end
 
-res=L2Obj+param.TVWeight*TVObj+param.L1Weight*WObj;
+res=L2Obj+(param.TVWeight*TVObj+param.L1Weight*WObj);
 
-function g = grad(x,param)%***********************************************
-
-% L2-norm part
-aux = param.E*x;
-aux1 = cell(size(aux));
-for card = 1:size(aux,1)
-    for label = 1:size(aux,2)
-        aux1{card, label} = aux{card, label}-param.y{card, label};
-    end
-end
-L2Grad = 2.*(param.E'*aux1);
-clear aux aux1
+function g = grad(x,param,weightMat)%***********************************************
 
 if param.TVWeight
     w = param.TV*x;
@@ -144,4 +142,20 @@ else
     WGrad=0;
 end
 
-g=L2Grad+param.TVWeight*TVGrad+param.L1Weight*WGrad;
+% L2-norm part
+aux = param.E*x;
+aux1 = cell(size(aux));
+% extended weights
+weightMatExt = zeros(size(WGrad));
+
+for card = 1:size(aux,1)
+    for label = 1:size(aux,2)
+        aux1{card, label} = aux{card, label}-param.y{card, label};   
+        weightMatExt(:,:,card,label) = weightMat(card,label);
+    end
+end
+L2Grad = 2.*(param.E'*aux1);
+clear aux aux1
+
+
+g=L2Grad+(param.TVWeight*TVGrad+param.L1Weight*WGrad).*weightMatExt;
