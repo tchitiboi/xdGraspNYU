@@ -25,19 +25,21 @@ end
 %collapse cardiac phases
 tcar=para.CardiacPhase/nCard;
 
-kdata_Under1=zeros(nx,tcar*nline,nc,para.ntres,nCard);
-Traj_Under1=zeros(nx,tcar*nline,para.ntres,nCard);
-DensityComp_Under1=zeros(nx,tcar*nline,para.ntres,nCard);
-Res_Signal_Under1=zeros(tcar*nline, para.ntres, nCard);
-Res_Signal_P_Under1=zeros(tcar*nline, para.ntres, nCard, size(Res_Signal_P,2));
+kdata_Under1=zeros(nx,floor(tcar*nline),nc,para.ntres,nCard);
+Traj_Under1=zeros(nx,floor(tcar*nline),para.ntres,nCard);
+DensityComp_Under1=zeros(nx,floor(tcar*nline),para.ntres,nCard);
+Res_Signal_Under1=zeros(floor(tcar*nline), para.ntres, nCard);
+Res_Signal_P_Under1=zeros(floor(tcar*nline), para.ntres, nCard, size(Res_Signal_P,2));
+
+binsize = floor(nline*tcar);
 
 if (tcar>=1)
   for ii=1:nCard
-    kdata_Under1(:,:,:,:,ii) = kdata_Under(:,(ii-1)*nline*tcar+1:ii*nline*tcar,:,:);
-    Traj_Under1(:,:,:,ii) = Traj_Under(:,(ii-1)*nline*tcar+1:ii*nline*tcar,:);
-    DensityComp_Under1(:,:,:,ii) = DensityComp_Under(:,(ii-1)*nline*tcar+1:ii*nline*tcar,:);
-    Res_Signal_Under1(:,:,ii) = Res_Signal_Under((ii-1)*nline*tcar+1:ii*nline*tcar,:);
-    Res_Signal_P_Under1(:,:,ii,:) = Res_Signal_P_Under((ii-1)*nline*tcar+1:ii*nline*tcar,:,:);
+    kdata_Under1(:,:,:,:,ii) = kdata_Under(:,(ii-1)*binsize+1:ii*binsize,:,:);
+    Traj_Under1(:,:,:,ii) = Traj_Under(:,(ii-1)*binsize+1:ii*binsize,:);
+    DensityComp_Under1(:,:,:,ii) = DensityComp_Under(:,(ii-1)*binsize+1:ii*binsize,:);
+    Res_Signal_Under1(:,:,ii) = Res_Signal_Under((ii-1)*binsize+1:ii*binsize,:);
+    Res_Signal_P_Under1(:,:,ii,:) = Res_Signal_P_Under((ii-1)*binsize+1:ii*binsize,:,:);
   end
 else
     disp('not enough spokes per image for this number of cardiac phases')

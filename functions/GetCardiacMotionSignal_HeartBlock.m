@@ -36,21 +36,57 @@ for t = 1:nt
  tmp(:,:,t)= repmat(1,[nx,ny])./(1 + exp(-(time_series(:,:,t)-repmat(0.8,[nx, ny]))/0.3));
 end
 
+% tmp1 = zeros(size(tmp));
+% for t = 2:(size(tmp,3)-1)
+%   tmp1(:,:,t) = (tmp(:,:,t-1)+3*tmp(:,:,t)+tmp(:,:,t+1))/5;
+% end
+% 
+% tmp1(:,:,1) = (3*tmp(:,:,1)+tmp(:,:,2))/4;
+% tmp1(:,:,size(tmp,3)) = (tmp(:,:,size(tmp,3)-1)+tmp(:,:,size(tmp,3)))/4;
+% tmp = tmp1;
+
+% tmp = medfilt1(tmp,3,[],3);
+% time_series = tmp;
+
 maskHeart = tmc_localizeHeart(tmp, HF_Index);
+k=0;
+for border_size = 20:1:60
+    k=k+1;
+    border_img = maskHeart;
+        for x = 1:size(maskHeart,1)
+          for y = 1:size(maskHeart,2)
+              if (x < border_size || x > size(maskHeart,1)-border_size) ...
+                 || (y < border_size || y > size(maskHeart,1)-border_size)
+                  border_img(x,y) = 0;
+              else
+                  border_img(x,y) = 1;  
+              end
+          end
+        end
+    new_img = maskHeart.*border_img;
+    tmp1 = time_series.*repmat(new_img,[1 1 nt]);
+    tmp1 = tmp1/max(max(max(tmp1)));
+    
+    %indeces = find(tmp1>0.85);
+    %tmp1(indeces) = 0;
 
-tmp = time_series.*repmat(maskHeart,[1 1 nt]);
-tmp = tmp/max(max(max(tmp)));
+    Signal(:,k)=squeeze(sum(sum(tmp1,1),2));
+    temp=abs(fftshift(fft(Signal(:,k))));
+    Signal_FFT(:,k)=temp/max(temp(:));
 
-figure,imagescn(abs(tmp),[0 .6*max(tmp(:))],[],[],3)
+end
 
-Signal=squeeze(sum(sum(tmp,1),2));
-temp=abs(fftshift(fft(Signal)));
-Signal_FFT=temp/max(temp(:));clear temp tmp
-% NN=70;k=0;
-% for ii=1:1:nx-NN
-%     for jj=1:1:ny-NN
+figure,imagescn(abs(time_series),[0 .6*max(tmp(:))],[],[],3)
+
+
+% time_series = tmp;
+% clear temp tmp
+% 
+% NN=30;k=0;
+% for ii=1:5:nx-NN
+%     for jj=1:5:ny-NN
 %         k=k+1;
-%         tmp=abs(recon_Res(jj:jj+NN-1,ii:ii+NN-1,:));
+%         tmp=abs(time_series(jj:jj+NN-1,ii:ii+NN-1,:));
 %         Signal(:,k)=squeeze(sum(sum(tmp,1),2));
 %         temp=abs(fftshift(fft(Signal(:,k))));
 %         Signal_FFT(:,k)=temp/max(temp(:));clear temp tmp
@@ -65,10 +101,14 @@ HeartFS=F_X(HF_Index);
 HeartFS=HeartFS(m);
 % 
 disp(sprintf('Cardiac motion frequency: %f', HeartFS));
+disp(sprintf('Peak: %f', max(Heart_Peak(:))));
 para.HeartFS=HeartFS;
 
-Cardiac_Signal=Signal;
-Cardiac_Signal_FFT=Signal_FFT;
+% Cardiac_Signal=Signal(:,n);
+% Cardiac_Signal_FFT=Signal_FFT(:,n);
+
+Cardiac_Signal=Signal(:,n);
+Cardiac_Signal_FFT=Signal_FFT(:,n);
 Cardiac_Signal=smooth(Cardiac_Signal,4,'lowess');
 
 Fs=1/para.TR;
@@ -83,7 +123,7 @@ Cardiac_Signal=imresize(Cardiac_Signal,[nt*2,1]);
 
 time = para.TR:para.TR:nt*2*para.TR;
 
-close all
+%close all
 figure
 subplot(2,1,1);plot(time,Cardiac_Signal),title('Cardiac Motion Signal')
 subplot(2,1,2);plot(F_X,Cardiac_Signal_FFT),set(gca,'XLim',[-2 2]),set(gca,'YLim',[-.02 0.08]),

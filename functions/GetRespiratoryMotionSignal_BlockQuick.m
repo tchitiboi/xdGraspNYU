@@ -1,6 +1,6 @@
-function [Res_Signal1,para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,ResSort,recon_Car, sw);
+function [Res_Signal1, Res_Signal_Long, para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,ResSort,recon_Car, sw);
 
-recon_Res = zeros(size(recon_Car,1), size(recon_Car,2), size(recon_Car,3)/2);
+recon_Res = zeros(size(recon_Car,1), size(recon_Car,2), floor(size(recon_Car,3)/2));
 
 for t = 2:(size(recon_Res,3)-1)
   recon_Res(:,:,t) = (0.5*recon_Car(:,:,2*t-2)+recon_Car(:,:,2*t-1)+recon_Car(:,:,2*t)+...
@@ -15,12 +15,18 @@ recon_Res(:,:,size(recon_Res,3)) = (0.5*recon_Car(:,:,size(recon_Res,3)-2)+...
 %recon_Res = recon_Res .* repmat(imcomplement(maskHeart),[1 1 size(recon_Res,3)]);
 
 border_img = squeeze(recon_Res(:,:,1));
-border_size = 60;
+border_size_big = 40;
+border_size_small = 20;
 for x = 1:size(recon_Res,1)
   for y = 1:size(recon_Res,2)
-      if (x < border_size || x > size(recon_Res,1)-border_size) ...
-         || (y < border_size || y > size(recon_Res,2)-border_size)
-          border_img(x,y) = 1;
+      if (x < border_size_big || x > size(recon_Res,1)-border_size_big) ...
+         || (y < border_size_big || y > size(recon_Res,2)-border_size_big)
+          if (x < border_size_small || x > size(recon_Res,1)-border_size_small) ...
+             || (y < border_size_small || y > size(recon_Res,2)-border_size_small)
+              border_img(x,y) = 0;
+          else
+              border_img(x,y) = 1;
+          end
       else
           border_img(x,y) = 0;  
       end
@@ -41,17 +47,12 @@ bw_dilated = 1 - bw_dilated;
 
 %border_img = border_img .* bw_dilated;
 %recon_Res = recon_Res .* repmat(bw_dilated,[1 1 size(recon_Res,3)]);
-%recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
+recon_Res = recon_Res .* repmat(border_img,[1 1 size(recon_Res,3)]);
 
 TR=para.TR*2;
 time = TR:TR:nt*TR;
-F_S = 1/TR;F_X = 0:F_S/(nt-1):F_S;
-F_X=F_X-F_S/2;  %%% frequency after FFT of the motion signal
-if mod(nt,2)==0
-    F_X=F_X+F_X(nt/2);
-end
-FR_Index=find(F_X<para.HF_R & F_X>para.LF_R);
-FC_Index=find(F_X<para.HF_H & F_X>para.LF_H);
+[FC_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
+[FR_Index, F_X] = selectRespMotionFrequencies(para, nt);
 
 [nx,ny,nt]=size(recon_Res);
 NN=floor(nx/12);k=0;
@@ -120,9 +121,6 @@ max_peak = abs(max(peak_values));
 
 Res_Signal_Long = Res_Signal_Long - min(Res_Signal_Long);
 
-if ResSort  
-  Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index);    
-  figure, plot(Res_Signal1)
-else
-  Res_Signal1 = Res_Signal_Long;
-end
+  
+Res_Signal1 = InvertRespCurve( Res_Signal_Long, peak_index, valley_index);    
+figure, plot(Res_Signal1)

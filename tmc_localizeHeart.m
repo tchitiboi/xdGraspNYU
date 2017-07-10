@@ -21,7 +21,7 @@ selected_frequency = squeeze(img_fft_imgs(HF_Index,:,:));
 accum = zeros(size(imgs, 2), size(imgs, 1));
 
 for t=1:max(size(HF_Index))-1
-    accum = accum + (medfilt2(squeeze(selected_frequency(t,:,:)))-medfilt2(squeeze(selected_frequency(t+1,:,:)))).^2;
+    accum = accum + abs(medfilt2(squeeze(selected_frequency(t,:,:)))-medfilt2(squeeze(selected_frequency(t+1,:,:)))).^1.5;
 end
 
 
@@ -36,14 +36,14 @@ thresh = thresh * 0.75;
 
 % threshold and dilate
 bw = im2bw(im_map, thresh);
-se = strel('octagon',6);
+se = strel('octagon',9);
 bw_dilated = imdilate(bw,se);
-se = strel('octagon',6);
+se = strel('octagon',9);
 bw_dilated = imclose(bw_dilated,se);
 bw_dilated = imfill(bw_dilated, 'holes');
 
 border_img = bw_dilated;
-border_size = 40;
+border_size = 30;
 for x = 1:size(bw_dilated,1)
   for y = 1:size(bw_dilated,2)
       if (x < border_size || x > size(bw_dilated,1)-border_size) ...
@@ -56,6 +56,8 @@ for x = 1:size(bw_dilated,1)
 end
 
 % get largest cc
+%[labeledImage, numberOfBlobs] = bwlabel(border_img);
+%largestCC = extractNLargestCC(border_img, 1);
 [labeledImage, numberOfBlobs] = bwlabel(bw_dilated.*border_img);
 largestCC = extractNLargestCC(bw_dilated.*border_img, 1);
 

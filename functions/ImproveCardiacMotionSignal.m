@@ -13,13 +13,13 @@ hold off
 [peak_values,peak_index]= findpeaks(double(Cardiac_Signal));
 
 index=0;
-span=para.span;
-while length(valley_index)>ceil(para.HeartFS*para.TR*para.nt)+4
+span=6;
+while length(valley_index)>ceil(para.HeartFS*para.TR*para.nt)*1.2
     index=1;
     span=span+2;
     Cardiac_Signal_new = smooth(Cardiac_Signal,span,'lowess');
     [valley_values,valley_index]= findpeaks(-double(Cardiac_Signal_new));
-    [peak_values,peak_index]= findpeaks(double(Cardiac_Signal));
+    %[peak_values,peak_index]= findpeaks(double(Cardiac_Signal));
     valley_values=-valley_values;
     plot(Cardiac_Signal_new,'r','LineWidth',1)
     hold on
@@ -40,8 +40,8 @@ hold off
 
 %%%exclude local false minima 
 for ii=1:length(valley_index)
-    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1 : min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(Cardiac_Signal)));
-    t2=valley_values(ii)<Cardiac_Signal(max(valley_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1) : valley_index(ii)-1);
+    t1=valley_values(ii)<Cardiac_Signal(valley_index(ii)+1 : min(valley_index(ii)+ceil(1/(para.HeartFS*para.TR)*0.2),length(Cardiac_Signal)));
+    t2=valley_values(ii)<Cardiac_Signal(max(valley_index(ii)-ceil(1/(para.HeartFS*para.TR)*0.2),1) : valley_index(ii)-1);
     if isempty(find([t1;t2]==0));
         valley_index_new(ii)=valley_index(ii);
     else
@@ -51,8 +51,8 @@ end
 
 %%%exclude local false maxima 
 for ii=1:length(peak_index)
-    t1=peak_values(ii)<Cardiac_Signal(peak_index(ii)+1 : min(peak_index(ii)+ceil(1/(para.HeartFS*para.TR)/2),length(Cardiac_Signal)));
-    t2=peak_values(ii)<Cardiac_Signal(max(peak_index(ii)-ceil(1/(para.HeartFS*para.TR)/2),1) : peak_index(ii)-1);
+    t1=peak_values(ii)>Cardiac_Signal(peak_index(ii)+1 : min(peak_index(ii)+ceil(1/(para.HeartFS*para.TR)*0.2),length(Cardiac_Signal)));
+    t2=peak_values(ii)>Cardiac_Signal(max(peak_index(ii)-ceil(1/(para.HeartFS*para.TR)*0.2),1) : peak_index(ii)-1);
     if isempty(find([t1;t2]==0));
         peak_index_new(ii) = peak_index(ii);
     else
@@ -62,18 +62,16 @@ end
 
 ES_index=valley_index(find(valley_index_new~=0));
 ES_values=valley_values(find(valley_index_new~=0));
+ED_index=peak_index(find(peak_index_new~=0));
+ED_values=peak_values(find(peak_index_new~=0));
 clear valley_index_new peak_index_new
 plot(Cardiac_Signal,'r','LineWidth',1)
 hold on
 plot(ES_index,ES_values,'g*')
 hold off
 
-
-ED_index=peak_index(find(peak_index~=0));
-ED_values=peak_values(find(peak_index~=0));
-
 para.CardiacPhase=ceil(mean(diff(ES_index)));
-para.Sys=ceil(para.CardiacPhase*0.4);
+para.Sys=ceil(para.CardiacPhase*0.4); %%%% Change to 0.5 for very long cycles
 para.Dia=para.CardiacPhase-para.Sys;
 
 disp(sprintf('para.CardiacPhase: %f', para.CardiacPhase));
@@ -86,6 +84,10 @@ end
 if ES_index(end)+para.Dia+1>para.nt
     ES_index=ES_index(1:end-1);
     ES_values=ES_values(1:end-1);
+end
+while ED_index(2)< ES_index(1)
+    ED_index=ED_index(2:end);
+    ED_values=ED_values(2:end);
 end
 
 id = 1;
@@ -109,6 +111,8 @@ sys_length1
 plot(Cardiac_Signal,'r','LineWidth',1)
 hold on
 plot(ES_index,ES_values,'g*')
+plot(ED_index,ED_values,'b+')
 hold off
 para.ES_index=ES_index;
+para.ED_index=ED_index;
 para.ntres=length(para.ES_index);
