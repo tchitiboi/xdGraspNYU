@@ -1,4 +1,4 @@
-function [x] = CSL1NlCg_Cell_w(x0,param)
+function [x] = CSL1NlCg_Cell_w_GPU(x0,param)
 % 
 % res = CSL1NlCg(param)
 
@@ -15,7 +15,6 @@ t0 = 1 ;
 k = 0;
 % compute g0  = grad(f(x))
 g0 = grad(x,param);
-dx = -g0;
 
 %  %% Preparation
 %     fprintf(' Performing gradient check \n')
@@ -49,9 +48,8 @@ dx = -g0;
 %     
 %     disp([' Finite difference = ', num2str(J_fd), ', Analytical = ', num2str(J_an), ', ratio = ', num2str(ratio)]);
 %     fprintf(' ------------------------- \n')
-% 
-% dx = -g0;
 
+dx = -g0;
 % iterations
 while(1)
 
@@ -91,19 +89,17 @@ return;
 function res = objective(x,dx,t,param) %**********************************
 
 % L2-norm part
-aux = param.E*(x+t*dx);
-w = cell(size(aux));
 L2Obj=0;
-for resp = 1:size(aux,1)
-    for card = 1:size(aux,2)
-       p(1,:,1) = param.SGW{resp,card};
-       w{resp,card} = bsxfun(@times,p,aux{resp,card} - param.y{resp,card});
-       L2Obj = L2Obj + w{resp,card}(:)'*w{resp,card}(:);
-       clear p
+aux = x+t*dx;
+for resp = 1:size(param.E1,1)
+    for card = 1:size(param.E1,2)
+       p(1,:,1) = param.SGW{resp,card};       
+       aux1 = (param.E1{resp,card}*squeeze(aux(:,:,resp,card)));%*0.2081;%.*sqrt(param.nx*pi/2/size(param.y{resp,card},2))/param.b1_scalar;
+       w = bsxfun(@times,p, reshape(aux1, [param.nx, size(aux1,1)/param.nx, size(aux1,2)]) - param.y{resp,card});
+       L2Obj = L2Obj + w(:)'*w(:);
+       clear p aux1 w
     end
 end
-%L2Obj=w(:)'*w(:);
-clear aux w
 
 if param.TVWeight
     w = param.TV*(x+t*dx); 
@@ -124,17 +120,21 @@ res=L2Obj+param.TVWeight*TVObj+param.L1Weight*WObj;
 function g = grad(x,param)%***********************************************
 
 % L2-norm part
-aux = param.E*x;
-aux1 = cell(size(aux));
-for resp = 1:size(aux,1)
-    for card = 1:size(aux,2)
+L2Grad = zeros(size(x));
+
+for resp = 1:size(param.E1,1)
+    for card = 1:size(param.E1,2)
         p(1,:,1) = param.SGW{resp,card}.^2;
-        aux1{resp,card} = bsxfun(@times,aux{resp,card}-param.y{resp,card},p);
-        clear p
+        aux1 = param.E1{resp,card}*x(:,:,resp,card);%*0.2081;%.*sqrt(param.nx*pi/2/size(param.y{resp,card},2))/param.b1_scalar;
+        aux = bsxfun(@times,reshape(aux1, [param.nx, size(aux1,1)/param.nx, size(aux1,2)]) - param.y{resp,card},p);
+        L2Grad(:,:,resp,card) = 2.*(param.E1{resp,card}'*double(reshape(aux, [size(aux,1)*size(aux,2),size(aux,3)])));
+        L2Grad(:,:,resp,card) = L2Grad(:,:,resp,card)./sum(abs((param.b1)).^2,3).*param.nx*pi/2/size(aux,2);%*0.2081;
+        clear p aux aux1
     end
 end
-L2Grad = 2.*(param.E'*aux1);
-clear aux aux1
+
+% L2-norm part
+% L2Grad = 2.*(param.E'*(param.E*x-param.y));
 
 if param.TVWeight
     w = param.TV*x;
