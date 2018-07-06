@@ -10,7 +10,7 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     %maxRes = m + 1.96*sd;
     
     H = histogram(Res_Signal,100);
-    threshbin = 1;
+    threshbin = 4;
     minBin = 1;
     maxBin = 100;
     
@@ -96,9 +96,16 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     
     for r = 1:size(idx,1)
         i = idx(r);
-        p = P1(r);
+        %p = P1(r);
         Res_Signal_Bins(r) = find(m(:,2)==i);
         Res_Signal_P(r,:)=P1(r,:);
+        for jj = 1:length(P1(r,:))
+            if Res_Signal_P(r,jj) > 0.7
+                Res_Signal_P(r,:) = 1;
+            elseif Res_Signal_P(r,jj) > 0.01
+                Res_Signal_P(r,:) = Res_Signal_P(r,:) + 0.3;
+            end
+        end
     end
     
     Res_Signal_Bins = medfilt1(Res_Signal_Bins,7);

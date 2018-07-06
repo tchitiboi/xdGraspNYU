@@ -27,7 +27,7 @@ end
 
 [nx,ny,nt]=size(recon_Car);
 
-para.LF_H=0.9;para.HF_H=1.7;%%% initial heart rate range
+para.LF_H=1;para.HF_H=1.7;%%% initial heart rate range
 [HF_Index, F_X] = selectCardiacMotionFrequencies(para, nt);
 
 time_series = abs(recon_Car);
@@ -50,7 +50,7 @@ end
 
 maskHeart = tmc_localizeHeart(tmp, HF_Index);
 k=0;
-for border_size = 20:1:60
+for border_size = 0:1:50
     k=k+1;
     border_img = maskHeart;
         for x = 1:size(maskHeart,1)

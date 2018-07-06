@@ -68,7 +68,7 @@ Res_Signal_P_percycle = cell(para.ntres,nCard);
 
 %binsize = floor(nline*tcar);
 
-if (tcar>=0.8)
+if (tcar>=0.6)
   for ii=1:nCard
     for j=1:para.ntres
       if ~isempty(kdata_cycle{j})

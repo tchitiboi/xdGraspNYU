@@ -27,7 +27,7 @@ addpath(genpath('imageAnalysis'))
 % end
 %Load the files
 %cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt26')
-cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt9')
+
 
 load kdata.mat;
 load Traj.mat;
@@ -52,6 +52,14 @@ kdata=kdata(:,:,coil);
 
 %Number of spokes in each cardiac phase
 nline=15;
+
+%crop data
+crop_size = 40000;
+ntviews = crop_size;
+kdata = kdata(:,1:crop_size,:);
+Traj = Traj(:,1:crop_size);
+DensityComp = DensityComp(:,1:crop_size);
+[nx,ntviews,nc]=size(kdata);
 
 %Smoothing filter span
 para.span=10;
@@ -171,13 +179,13 @@ old_cardiac_signal = Cardiac_Signal;
 para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 para.nline=nline;
-[cycleLabels, para] = LabelCycles(Cardiac_Signal, para);
+%[cycleLabels, para] = LabelCycles(Cardiac_Signal, para);
 
 cycleLabels(:) = 1;
 Perr = 4; %Perr=para.ntres;
 %Perc=para.CardiacPhase;
 Perc = 15;
-[Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal_Uninverted', Perr);
+[Res9_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal_Uninverted', Perr);
 labels = 1;
 %[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
 %[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Card_RR(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, Perc);
@@ -250,14 +258,14 @@ time=time/60
 % time=time/60
 
 %figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
-figure,imagescn(abs(squeeze(recon_GRASP)),[0 .003],[],[],3)
+figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 
-Weight3=0.008; 
+%Weight3=0.008; 
 Weight2=0.015;
-Weight1=0.01; 
+Weight1=0.015; 
 param.TVWeight=max(abs(recon_GRASP(:)))*Weight1;
 param.L1Weight=max(abs(recon_GRASP(:)))*Weight2;
-param.L1Weight1=max(abs(recon_GRASP(:)))*Weight3;
+%param.L1Weight1=max(abs(recon_GRASP(:)))*Weight3;
 % param.TV = TV_Temp;% TV along Cardiac dimension 
 param.TV = TV_Temp3D;% TV along Cardiac dimension 
 param.W  = TV_Temp2DRes;% TV along Respiratory dimension
@@ -272,10 +280,10 @@ param.b1 = b1;
 param.SGW = Res_Signal_P_Under;
 
 
-clear para Cardiac_Signal Cut DensityComp DensityComp_Under
-clear Gating_Signal Gating_Signal_FFT Res_Signal Res_Signal_Under
-clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
-clear nline ntviews nx N ans
+% clear para Cardiac_Signal Cut DensityComp DensityComp_Under
+% clear Gating_Signal Gating_Signal_FFT Res_Signal Res_Signal_Under
+% clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
+% clear nline ntviews nx N ans
 
 % weightMat = zeros(size(Traj_Under));
 % maxSp = 0;
@@ -317,9 +325,9 @@ end
 time=toc;
 time=time/60;
 recon_GRASP=abs(single(recon_GRASP));
-recon_Res=abs(single(recon_Res));
+%recon_Res=abs(single(recon_Res));
 
-recon_GRASP_small = recon_GRASP(101:end-100, 101:end-100,:,:);
+recon_GRASP_small = recon_GRASP(111:end-110, 111:end-110,:,:);
 
 figure,imagescn(abs(recon_GRASP),[0 .01],[],[],3)
 figure,imagescn(abs(ipermute(recon_GRASP, [1 2 4 3])),[0 .01],[],[],3)

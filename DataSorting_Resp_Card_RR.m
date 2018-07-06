@@ -60,7 +60,7 @@ Res_Signal_P_percycle = cell(para.ntres,nCard,labels);
 
 %binsize = floor(nline*tcar);
 
-if (tcar>=1)
+if (tcar>=0.7)
   for ii=1:nCard
     for j=1:para.ntres
       for label=1:labels
@@ -86,7 +86,7 @@ kdata_Under2 = cell(nResp,nCard,labels);
 Traj_Under2 = cell(nResp,nCard,labels);
 DensityComp_Under2 = cell(nResp,nCard,labels);
 p2 = cell(nResp,nCard,labels);
-minSpokes = 30;
+minSpokes = 25;
 
 tres=para.ntres/nResp;
 if (tres>=1)  
