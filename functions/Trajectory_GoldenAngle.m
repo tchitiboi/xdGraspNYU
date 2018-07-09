@@ -2,8 +2,10 @@ function [Traj,DensityComp]=Trajectory_GoldenAngle(ntviews,nX);
 %Generate 2D golden-angle radial trajectory and density copensation
 
 % a=111.246117975;
-Gn = (1 + sqrt(5))/2;
-a=180/Gn;
+
+%Gn = (1 + sqrt(5))/2;
+%a=180/Gn;
+a = 23.6281;
 
 radian=mod((0:a:(ntviews-1)*a)*pi/180,2*pi);
 Rho=[-floor(nX/2):floor(nX/2)];

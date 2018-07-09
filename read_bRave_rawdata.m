@@ -88,8 +88,9 @@ kdata=permute(squeeze(kdata),[1,3,2]);
 %% Calculate trajectory data
 fprintf('Calculate trajectory \n')
 %[Traj,DensityComp] = calcTrajectory(par);
-%[Traj,DensityComp]=Trajectory_GoldenAngle(param.Nproj,param.Nread);
-[Traj,DensityComp]=Trajectory_GoldenAngle_var(param.Nproj,param.Nread,angle);
+[Traj,DensityComp]=Trajectory_GoldenAngle(param.Nproj,param.Nread);
+%[Traj,DensityComp]=Trajectory_GoldenAngle_var(param.Nproj,param.Nread,angle);
+%[Traj,DensityComp]=Trajectory_TinyGoldenAngle(param.Nproj,param.Nread,angle);
 param.angle = angle;
 
 
