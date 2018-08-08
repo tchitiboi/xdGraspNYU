@@ -1,7 +1,6 @@
 function [Cardiac_Signal,para,maskHeart]=GetCardiacMotionSignal_HeartBlock(kdata,Traj,DensityComp,b1,nline,para,recon_Car);
 %Extract cardiac motion signal from reconstructed low temporal
 %resolution images. 
-close all
 
 if ~exist('recon_Car','var')
     nline_car=nline*2;

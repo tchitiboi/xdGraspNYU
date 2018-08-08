@@ -3,11 +3,11 @@
 
 %Prepare for DICOM template
 %You need to change the path to be the one you store the templates.
-PathName1='C:\Users\Teodora\NYU\matlabDev\Demo_DICOMGeneration\DICOM_Templace_singleSlice\'
+PathName1='/home/chitit01/Development/xdgrasp/dicomTools/SampleSAXDicom/'
 
 load FileName.mat
 
-pathData = 'Z:\axell01lab\labspace\Teodora\CardiacRadialData\6431788_a\arrhythmia_2\'
+pathData = '/home/chitit01/NYUShared/axell01lab/labspace/Teodora/CardiacRadialData/1036218_a/DICOM/a6/'
 
 %pathData = 'Z:\axell01lab\labspace\EvePiekarski\MATLAB\FBBHProject\RAWDATA\RawdataDicomExport'
 
@@ -34,9 +34,8 @@ system('del /q *');
 %save the images
 Name='CardiacTest';
 % for jj=1:min(ntres,20)
-%     jj
     for ii=1:ntcar
-        DI=FileName{ii}; 
+        DI=FileName{ii};
         metadata = dicominfo([PathName1 DI]);
 
         %Here, you can add dicom header

@@ -5,30 +5,6 @@ load_files=0;
 addpath(genpath('functions'))
 addpath(genpath('imageAnalysis'))
 
-% if(load_files)
-%     clear all
-%     clear classes
-%     clc
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/Traj.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/ref.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt67/kdata.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/kdata.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/ref.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt57/Traj.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/kdata.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/ref.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt85/Traj.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/kdata.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/ref.mat')
-%     %load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt49/Traj.mat')
-%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/kdata.mat')
-%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/ref.mat')
-%     load('/Users/rambr01/Documents/MATLAB/xdgrasp/Pt79/Traj.mat')
-% end
-%Load the files
-%cd ('D:\Users\Public\cardiodata\testDataSeptum\LVdilated\Pt26')
-
-
 load kdata.mat;
 load Traj.mat;
 load ref.mat
@@ -86,27 +62,6 @@ ref=ref(:,:,coil);
 [~,b1]=adapt_array_2d(squeeze(ref));
 b1=double(b1/max(abs(b1(:))));%clear ref
 
-%%%%%%%%%%%%%
-% ResSort=0;Teodora/meas_MID01554_FID34299_2D_Cardiac_RDD/
-% fov_size=floor(nx/2);
-% bKwicResp=0;
-% %%%%%%%%%%%%%
-% % if(~bKwicResp)
-%     nline_res = nline*4;NProj=0;
-%     [recon_Res,nt] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,0,NProj,0);
-%     [Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,nline_res,para,ResSort,nt,recon_Res);
-%     %[Res_Signal_new,para,U,S,V]=GetRespiratoryMotionSignal_Block_SVD(kdata,Traj,DensityComp,b1,nline,para,ResSort);
-%     %%%%%%%%%%%%%
-% else
-%     %bKwic=1;nline_res = nline*4; NProj=nline*10-1;
-%     nline_res = nline*4; NProj=nline*9-1;
-%     [recon_Res_kwic,nt_kwic] = getReconForMotionDetection(kdata,Traj,DensityComp,b1,nline_res,fov_size,1,NProj,0);
-%     [Res_Signal_kwic,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,nline_res,para,ResSort,nt_kwic,recon_Res_kwic);
-%     Res_Signal = Res_Signal_kwic;
-% end
-% Res_Signal=Res_Signal./max(Res_Signal(:));
-%%%%%%%%%%%%%
-
 
 %Get cardiac motion signal
 %%%%%%%%%%%%%
@@ -139,193 +94,59 @@ else
 end
 
 %Get respiratory motion signal
-%[Res_Signal,para]=GetRespiratoryMotionSignal_Block(kdata,Traj,DensityComp,b1,nline,para,maskHeart,1);
 [Res_Signal, Res_Signal_Uninverted, para]=GetRespiratoryMotionSignal_BlockQuick(para,maskHeart,1,recon_Car,0);
 Res_Signal=Res_Signal./max(Res_Signal(:));
 Res_Signal_Uninverted = Res_Signal_Uninverted./max(Res_Signal_Uninverted(:)).*mean(Cardiac_Signal);
-
-% para.LF_H=0.9; para.HF_H=1.7;%%% initial heart rate range
-% TR=para.TR/2;
-% time = TR:TR:para.nt*TR;
-% F_S = 1/TR;F_X = 0:F_S/(para.nt-1):F_S;
-% F_X=F_X-F_S/2;  %%% frequency after FFT of the motion signal
-% if mod(para.nt,2)==0
-%     F_X=F_X+F_X(para.nt/2);
-% end
-% % 
-% FC_Index=find(F_X<para.HF_H & F_X>para.LF_H);
-% FR_Index=find(F_X<para.HF_R & F_X>para.LF_R);
-% 
-% k=0;
-% for step = -0.5:0.01:0.5
-%     k=k+1;
-%     new_signal(:,k) = Cardiac_Signal + Res_Signal_Uninverted'*step;
-%     new_signal(:,k) = new_signal(:,k)/max(new_signal(:,k));
-%     temp=abs(fftshift(fft(new_signal(:,k))));   
-%     sign_FFT(:,k) = temp/max(temp(:));    
-% end
-% 
-% Res_Peak=squeeze(sign_FFT(FR_Index,:));
-% Car_Peak=squeeze(sign_FFT(FC_Index,:));
-% 
-% ratio_Peak = max(Car_Peak)./max(Res_Peak);
-% n = find(ratio_Peak == max(ratio_Peak));
-% %[m,n]=find(Signal_FFT==max(Signal_FFT(:)));
-% figure, plot(new_signal(:,n))
-% figure, plot(F_X,sign_FFT(:,n)),set(gca,'XLim',[-2 2]),set(gca,'YLim',[-.02 0.08])
 
 old_cardiac_signal = Cardiac_Signal;
 %Cardiac_Signal = new_signal(:,n);
 para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 para.nline=nline;
-%[cycleLabels, para] = LabelCycles(Cardiac_Signal, para);
-
+[cycleLabels, para] = LabelCycles(Cardiac_Signal, para, '');
 cycleLabels(:) = 1;
-Perr = 4; %Perr=para.ntres;
-%Perc=para.CardiacPhase;
-Perc = 15;
-[Res9_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal_Uninverted', Perr);
+
+Perr = 7; 
+Perc = 25;
+[Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal_Uninverted', Perr);
 labels = 1;
-%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Cell(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, nline,para, Perr, Perc);
-%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Card_RR(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, Perc);
-%respBin = 2;
-%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Card_RR(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, respBin, Perc);
-[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Cell_Label_varCycle(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, Perc);
-%[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_Resp(kdata,Traj,DensityComp,Res_Signal,nline,para, Perr, Perc);
-% [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_Under]=DataSorting_1CD(kdata,Traj,DensityComp,Res_Signal,nline,para);
-
-% param.E=MCNUFFT(Traj_Under,DensityComp_Under,b1);  
-% kdata_Under2 = cell(9,10);
-% Traj_Under2 = cell(9,10);
-% DensityComp_Under2 = cell(9,10);
-% Res_Signal_P_Under2 = cell(9,10);
-% 
-% kdata_Under2(7:9,:) = kdata_Under;
-% Traj_Under2(7:9,:) = Traj_Under;
-% DensityComp_Under2(7:9,:) = DensityComp_Under;
-
-%%%%%%
-% b1 = ones(size(b1));
-% for i=1:size(Traj_Under,1)
-%     for j=1:size(Traj_Under,2)
-%         DensityComp_Under{i,j} = ones(size(DensityComp_Under{i,j}));
-%         kdata_Under{i,j} = ones(size(kdata_Under{i,j}));
-%     end
-% end
-%%%%%%
+[kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Card_RR(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, Perc);
 
 tic
-%param.E=MCNUFFT_MP_Cell_RR(Traj_Under,DensityComp_Under,b1);
-%param.E=MCNUFFT_MP_Cell_RR_SingleResp(Traj_Under,DensityComp_Under,b1);
-param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);
-    
+param.E=MCNUFFT_MP_Cell(Traj_Under,DensityComp_Under,b1);    
 param.y=kdata_Under;
 recon_GRASP=param.E'*param.y;
 time=toc;
 time=time/60
 
-%%%%%%
-% K = @(y) param.E*y; Kt = @(x) param.E'*x;
-% nrm_gpuNUFFT_1 = power_it_cell(K,Kt,[nx,nx,9,9],10)
-% recon_GRASP(:,:,1,1) = 1/nrm_gpuNUFFT_1 * recon_GRASP(:,:,1,1);
-%%%%%%
-
-
-%parameters
-
-
-% tic
-% recon_Res = zeros(size(recon_GRASP));
-% osf=2;
-% wg=7;
-% sw=16;
-% 
-% for i=1:Perr
-%     for j=1:Perc
-%         E = gpuNUFFT([real(col(Traj_Under{i,j})), imag(col(Traj_Under{i,j}))]',...
-%             col(sqrt(DensityComp_Under{i,j})),osf,wg,sw,[nx,nx],b1,true);
-% 
-%         kdata_Under_Res = reshape(kdata_Under{i,j},[size(kdata_Under{i,j},1)*size(kdata_Under{i,j},2),nc]);
-%         recon_Res(:,:,i,j) = E'*double(kdata_Under_Res);
-%         
-%         clear kdata_Under_Res
-%         
-%         recon_Res(:,:,i,j) = recon_Res(:,:,i,j).*size(DensityComp_Under{i,j},1)*pi/2/size(DensityComp_Under{i,j},2);
-%     end
-% end
-% time=toc;
-% time=time/60
-
-%figure,imagescn(abs(recon_Res),[0 .003],[],[],3)
 figure,imagescn(abs(recon_GRASP),[0 .003],[],[],3)
 
-%Weight3=0.008; 
-Weight2=0.015;
-Weight1=0.015; 
+%parameters
+Weight2=0.01;
+Weight1=0.01; 
 param.TVWeight=max(abs(recon_GRASP(:)))*Weight1;
 param.L1Weight=max(abs(recon_GRASP(:)))*Weight2;
-%param.L1Weight1=max(abs(recon_GRASP(:)))*Weight3;
-% param.TV = TV_Temp;% TV along Cardiac dimension 
 param.TV = TV_Temp3D;% TV along Cardiac dimension 
 param.W  = TV_Temp2DRes;% TV along Respiratory dimension
-% param.nite = 6;param.display = 1;
-% param.TV = TV_Temp;% TV along Cardiac dimension 
-% param.TV = TV_Temp4DCard;% TV along Cardiac dimension 
-% param.W  = TV_Temp4DRes;% TV along Respiratory dimension
-% param.W1  = TV_Temp4DRR;% TV along RR dimension
 
 param.nite = 6;param.display = 1;
 param.b1 = b1;
 param.SGW = Res_Signal_P_Under;
-
 
 % clear para Cardiac_Signal Cut DensityComp DensityComp_Under
 % clear Gating_Signal Gating_Signal_FFT Res_Signal Res_Signal_Under
 % clear TA Traj Traj_Under Weight1 Weight2 b1 kdata kdata_Under nc
 % clear nline ntviews nx N ans
 
-% weightMat = zeros(size(Traj_Under));
-% maxSp = 0;
-% avgSp = 0;
-% 
-% for card = 1:size(Traj_Under,1)
-%     for label = 1:size(Traj_Under,2)
-%         weightMat(card,label) = 1/size(Traj_Under{card, label},2);
-%         if (maxSp < size(Traj_Under{card, label},2))
-%             maxSp = size(Traj_Under{card, label},2);
-%         end
-%         avgSp = avgSp + size(Traj_Under{card, label},2);
-%     end
-% end
-% avgSp = avgSp/(size(Traj_Under,1)*size(Traj_Under,2));
-% 
-% for resp = 1:size(Traj_Under,1)
-%   for card = 1:size(Traj_Under,2)
-%     for label = 1:size(Traj_Under,3)
-%         weightMat(resp,card,label) = 1/size(Traj_Under{resp,card,label},2);
-%         if (maxSp < size(Traj_Under{resp,card,label},2))
-%             maxSp = size(Traj_Under{resp,card,label},2);
-%         end
-%         avgSp = avgSp + size(Traj_Under{resp,card,label},2);
-%     end
-%   end
-% end
-% avgSp = avgSp/(size(Traj_Under,1)*size(Traj_Under,2)*size(Traj_Under,3));
-% 
-% weightMat = weightMat.*maxSp;
-
 %%%
 clc
 tic
 for n=1:3
-    %recon_GRASP = CSL1NlCg_Cell_w_RR(recon_GRASP,param,weightMat);
     recon_GRASP = CSL1NlCg_Cell_w(recon_GRASP,param);
 end
 time=toc;
 time=time/60;
 recon_GRASP=abs(single(recon_GRASP));
-%recon_Res=abs(single(recon_Res));
 
 recon_GRASP_small = recon_GRASP(111:end-110, 111:end-110,:,:);
 

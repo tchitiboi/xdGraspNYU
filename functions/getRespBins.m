@@ -10,7 +10,7 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     %maxRes = m + 1.96*sd;
     
     H = histogram(Res_Signal,100);
-    threshbin = 4;
+    threshbin = 20;
     minBin = 1;
     maxBin = 100;
     

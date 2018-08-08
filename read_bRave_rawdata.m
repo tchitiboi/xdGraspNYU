@@ -83,7 +83,11 @@ param.Neco        = double(data.NEco);
 
 %% Get k-space data
 kdata = squeeze(twix_obj{d}.image());
-kdata=permute(squeeze(kdata),[1,3,2]);
+if param.Nslc > 1
+  kdata=permute(squeeze(kdata),[1,3,2,4]); 
+else
+  kdata=permute(squeeze(kdata),[1,3,2]);
+end
 
 %% Calculate trajectory data
 fprintf('Calculate trajectory \n')
