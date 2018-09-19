@@ -4,21 +4,18 @@ clc
 addpath(genpath('functions'))
 
 %Select the rawdata file
-%cd('/srv/mriscan/Archive/yarra_rds/Mobile2/RadialCardiac')
-%cd('Z:\Rawdata')
-% cd('/Users/Rebecca/Documents/MATLAB/xdGrasp_demo/Rawdata')
 path = '/home/chitit01/NYUShared/axell01lab/labspace/RadialMultiSlice/8873283/sl2/'
 [file,path]=uigetfile(strcat(path,'\*.dat'),'Select Mat file:');
 %mrprot = rdMeas_full([path file]);
-%[kdata,Traj,DensityComp,ref,TA,Cut,param] = read_bRave_rawdata([path file]);
+[kdata,Traj,DensityComp,ref,TA,Cut,param] = read_bRave_rawdata([path file]);
 
 %Total acquisition time (seconds)
 %TA=mrprot.lTotalScanTimeSec;
 
 %Read the rawdata
-[image_obj,MDH] = mapVBVD2014([path file]);
-kdata = image_obj.image{''};
-kdata=single(kdata);
+%[image_obj,MDH] = mapVBVD2014([path file]);
+%kdata = image_obj.image{''};
+%kdata=single(kdata);
 %clear image_obj file path
 %kdata=permute(squeeze(kdata),[1,3,2]);
 [nx,ntviews,nc]=size(kdata);
