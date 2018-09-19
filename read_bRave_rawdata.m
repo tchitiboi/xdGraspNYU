@@ -103,12 +103,18 @@ param.angle = angle;
 kdata=kdata(:,Cut+1:end,:,:);
 Traj=Traj(:,Cut+1:end);
 DensityComp=DensityComp(:,Cut+1:end);
-[param.Nread,param.Nproj,param.Ncoil]=size(kdata);
+[param.Nread,param.Nproj,param.Ncoil,nz]=size(kdata);
 
 %Do some filtering that are needed to calculated coil sensitivities
-filter=kaiser(param.Nread,10);
-kdata1=kdata.*repmat(filter,[1,param.Nproj,param.Ncoil]);
-kdata1=kdata1.*repmat(sqrt(DensityComp),[1,1,param.Ncoil]);
+if (nz==1)
+  filter=kaiser(param.Nread,10);
+  kdata1=kdata.*repmat(filter,[1,param.Nproj,param.Ncoil]);
+  kdata1=kdata1.*repmat(sqrt(DensityComp),[1,1,param.Ncoil]);
+else
+  filter=kaiser(param.Nread,10);
+  kdata1=kdata.*repmat(filter,[1,param.Nproj,param.Ncoil,nz]);
+  kdata1=kdata1.*repmat(sqrt(DensityComp),[1,1,param.Ncoil,nz]);
+end
 
 %Reconstruct the averaged results
 if(size(Traj,2)<=6000)
@@ -120,7 +126,11 @@ end
 param.E = MCNUFFT(Traj(:,1:N),DensityComp(:,1:N),ones(param.Nread,param.Nread));
 for ch=1:param.Ncoil
     ch
-    ref(:,:,ch) = param.E'*double(kdata1(:,1:N,ch));
+    if (nz==1)
+      ref(:,:,ch) = param.E'*double(kdata1(:,1:N,ch));
+    else 
+      ref(:,:,ch) = param.E'*double(kdata1(:,1:N,ch,nz));
+    end
 end
 ref=single(ref/max(ref(:)));
 
@@ -130,6 +140,4 @@ figure,imagescn(abs(ref),[0 .5],[],[],4)
 %Results combining all the coil elements
 figure,imagescn(abs(sos(ref,3)),[0 1],[],[],4)
 
-
-    
 end
