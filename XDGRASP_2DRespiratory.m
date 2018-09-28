@@ -42,7 +42,11 @@ para.flag=1;
 
 %Cut is the number of spokes thrown away in the beginning of acquisition
 %to achieve steady state
-para.TR=TA/(ntviews+Cut)*nline;
+if (size(t_kdata,4)==1)
+  para.TR=TA/(ntviews+Cut)*nline;
+else
+  para.TR=TA/(ntviews+Cut)*nline/size(t_kdata,4);
+end
 
 % Total number of cardiac phases
 para.nt=ntviews/nline;
@@ -99,10 +103,10 @@ para=ImproveCardiacMotionSignal(Cardiac_Signal,para);
 
 para.nline=nline;
 [cycleLabels, para] = LabelCycles(Cardiac_Signal, para, 'afib');
-%cycleLabels(:) = 1;
+cycleLabels(:) = 1;
 
-Perr = 7; 
-Perc = 23;
+Perr = 3; 
+Perc = 20;
 [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal_Uninverted', Perr);
 labels = 1;
 [kdata_Under,Traj_Under,DensityComp_Under,Res_Signal_P_Under]=DataSorting_Resp_Card_RR(kdata,Traj,DensityComp,Res_Signal_Bins, Res_Signal_P, cycleLabels, labels, nline,para, Perr, Perc);

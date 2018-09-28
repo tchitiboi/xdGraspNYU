@@ -187,7 +187,9 @@ function [ finalLabels, para ] = LabelCycles( Cardiac_Signal, para , condition)
                        cycleLabels(ind) = 0;
                    end
                end
-           end          
+           end   
+       else
+          cycleLabels(:) = 1;
        end
      end
   end

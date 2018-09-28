@@ -60,7 +60,7 @@ Res_Signal_P_percycle = cell(para.ntres,nCard,labels);
 
 %binsize = floor(nline*tcar);
 
-if (tcar>=0.7)
+if (tcar>=0.5)
   for ii=1:nCard
     for j=1:para.ntres
       for label=1:labels
