@@ -3,7 +3,9 @@ load Traj.mat;
 load ref.mat
 
 t_kdata= kdata;
-kdata = squeeze(t_kdata(:,:,:,4));
+if (size(kdata,4)>1)
+  kdata = squeeze(t_kdata(:,:,:,4));
+end
 
 % %coil compression
 % [nx,ntviews,nc]=size(kdata);
