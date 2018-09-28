@@ -10,7 +10,12 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
     %maxRes = m + 1.96*sd;
     
     H = histogram(Res_Signal,100);
-    threshbin = 20;
+    if (size(Res_Signal,1)>1000)
+       threshbin = 20;
+    else
+       threshbin = 4;
+    end
+    
     minBin = 1;
     maxBin = 100;
     
@@ -46,7 +51,7 @@ function [Res_Signal_Bins, Res_Signal_P] = getRespBins(Res_Signal, nbins)
 
     seeds = zeros([nbins,1]);
     for i = 1:nbins
-        seeds(i) = bins(floor(length(bins)/nbins*(i-1)+5))/100
+        seeds(i) = bins(floor(length(bins)/nbins*(i-1)+4))/100
     end
     
 %    guess = zeros(size(Res_Signal(Res_Signal_no_outliers))); 
